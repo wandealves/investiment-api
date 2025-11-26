@@ -1,3 +1,5 @@
+using Scalar.AspNetCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -11,6 +13,13 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.MapScalarApiReference(options =>
+{
+    options.Title = "Investment API";
+    options.Theme = ScalarTheme.BluePlanet;
+    options.DarkMode = true;
+});
 
 app.UseHttpsRedirection();
 
