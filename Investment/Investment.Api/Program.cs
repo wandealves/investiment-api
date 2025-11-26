@@ -1,3 +1,5 @@
+using Investment.Infrastructure.Context;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+builder.Services.AddDbContext<InvestmentDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
