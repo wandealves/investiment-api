@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Investment.Infrastructure",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Investment.Application", "Investment.Application\Investment.Application.csproj", "{1663D04A-5741-44A5-8E77-A8570CC79184}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Investment.Tool.Migrator", "Investment.Tool.Migrator\Investment.Tool.Migrator.csproj", "{EBB1DE88-4666-483A-80A0-AFC77854CA94}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{1663D04A-5741-44A5-8E77-A8570CC79184}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1663D04A-5741-44A5-8E77-A8570CC79184}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1663D04A-5741-44A5-8E77-A8570CC79184}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBB1DE88-4666-483A-80A0-AFC77854CA94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBB1DE88-4666-483A-80A0-AFC77854CA94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBB1DE88-4666-483A-80A0-AFC77854CA94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBB1DE88-4666-483A-80A0-AFC77854CA94}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
