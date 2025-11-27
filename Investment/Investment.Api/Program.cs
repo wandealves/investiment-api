@@ -1,4 +1,7 @@
+using Investment.Api.Endpoints;
+using Investment.Application.Services;
 using Investment.Infrastructure.Context;
+using Investment.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
@@ -8,10 +11,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-var app = builder.Build();
-
 builder.Services.AddDbContext<InvestmentDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+// Registrar repositórios
+builder.Services.AddScoped<IAtivoRepository, AtivoRepository>();
+builder.Services.AddScoped<ICarteiraRepository, CarteiraRepository>();
+builder.Services.AddScoped<ICarteiraAtivoRepository, CarteiraAtivoRepository>();
+builder.Services.AddScoped<ITransacaoRepository, TransacaoRepository>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+
+// Registrar serviços
+builder.Services.AddScoped<IAtivoService, AtivoService>();
+
+var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -27,6 +40,9 @@ app.MapScalarApiReference(options =>
 });
 
 app.UseHttpsRedirection();
+
+// Registrar endpoints
+app.RegistrarAtivoEndpoints();
 
 var summaries = new[]
 {
