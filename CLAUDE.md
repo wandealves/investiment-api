@@ -349,34 +349,91 @@ EF Core mappings in `Investment.Infrastructure/Mapping/`:
 
 ---
 
-### 🔄 FASE 5: RELATÓRIOS E MÉTRICAS (PENDENTE)
+### ✅ FASE 5: RELATÓRIOS E MÉTRICAS (COMPLETO)
 
 **Objetivo**: Gerar relatórios financeiros e calcular métricas de rentabilidade
 
-**Status**: ⏳ Não iniciado
+**Status**: ✅ Concluído
 
-**Pendente**:
-- ⏳ Pacotes: `QuestPDF` (2024.12.3), `ClosedXML` (0.104.2)
-- ⏳ Calculadoras financeiras:
-  - `IrrCalculator` - Internal Rate of Return (Newton-Raphson)
-  - `TwrCalculator` - Time-Weighted Return
-- ⏳ DTOs: `RelatorioRentabilidadeResponse`, `RelatorioProventosResponse`, `RendimentoMensalResponse`, `ProventoAtivoResponse`
-- ⏳ Service: `IRelatorioService` / `RelatorioService`
-- ⏳ Endpoints `/api/v1/relatorios`:
-  - GET `/rentabilidade/{carteiraId}?inicio=&fim=` - JSON
-  - GET `/proventos/{carteiraId}?inicio=&fim=` - JSON
-  - GET `/{carteiraId}/pdf?inicio=&fim=` - Arquivo PDF
-  - GET `/{carteiraId}/excel?inicio=&fim=` - Arquivo XLSX
-- ⏳ Exportação PDF com QuestPDF
-- ⏳ Exportação Excel com ClosedXML
+**Implementado**:
+- ✅ **Pacotes NuGet**: `QuestPDF` (2024.12.3) e `ClosedXML` (0.104.2)
+
+- ✅ **DTOs de Relatórios** (4 arquivos):
+  - `RelatorioRentabilidadeResponse` - Relatório completo com IRR, TWR, retorno simples, valores e evolução mensal
+  - `RelatorioProventosResponse` - Relatório de dividendos e JCP por ativo
+  - `RendimentoMensalResponse` - Evolução mensal (mês, rentabilidade, valor final)
+  - `ProventoAtivoResponse` - Detalhes de proventos por ativo
+
+- ✅ **Calculadoras Financeiras**:
+  - `IrrCalculator` - Cálculo de IRR (Internal Rate of Return) usando método Newton-Raphson
+    - Algoritmo iterativo com até 100 iterações
+    - Tolerância de 0.0001 para convergência
+    - Retorna taxa anualizada em percentual
+    - NPV (Net Present Value) calculado com fluxos de caixa temporais
+    - Derivada do NPV para otimização Newton-Raphson
+  - `TwrCalculator` - Cálculo de TWR (Time-Weighted Return)
+    - Elimina efeito do timing de aportes e resgates
+    - Versão completa com períodos segmentados por fluxos
+    - Versão simplificada para dados agregados
+    - Retorna taxa do período em percentual
+
+- ✅ **RelatorioService** - Serviço completo de geração de relatórios:
+  - `GerarRelatorioRentabilidadeAsync()`:
+    - Calcula cash flows de compras (negativo), vendas (positivo) e proventos
+    - Separa aportes, resgates e proventos
+    - Calcula valor inicial e final usando PosicaoService
+    - Aplica IRR e TWR para métricas avançadas
+    - Calcula retorno simples: (ValorFinal - ValorInicial + Proventos) / ValorInicial
+    - Agrupa rendimento por mês
+    - Verificação de ownership
+
+  - `GerarRelatorioProventosAsync()`:
+    - Filtra transações tipo Dividendo e JCP no período
+    - Agrupa por ativo com totalizadores
+    - Separa totais de dividendos e JCP
+    - Registra data do último pagamento
+
+  - `ExportarRelatorioPdfAsync()`:
+    - Gera PDF profissional com QuestPDF
+    - Layout formatado com header, tabelas e footer
+    - Seções de Rentabilidade e Proventos
+    - Estilização personalizada (cores, fontes, bordas)
+
+  - `ExportarRelatorioExcelAsync()`:
+    - Gera XLSX com múltiplas planilhas usando ClosedXML
+    - Sheet 1: Resumo (métricas principais)
+    - Sheet 2: Proventos (detalhamento por ativo)
+    - Sheet 3: Posição Atual (quantidade, preço médio, valor investido)
+    - Auto-ajuste de colunas
+    - Formatação com negrito em headers
+
+- ✅ **Endpoints `/api/v1/relatorios`** (4 rotas):
+  - GET `/rentabilidade/{carteiraId}?inicio=&fim=` - JSON com métricas completas
+  - GET `/proventos/{carteiraId}?inicio=&fim=` - JSON com proventos detalhados
+  - GET `/{carteiraId}/pdf?inicio=&fim=` - Download de arquivo PDF
+  - GET `/{carteiraId}/excel?inicio=&fim=` - Download de arquivo XLSX
+
+- ✅ **Recursos Adicionais**:
+  - Validação de período com DateTimeOffset
+  - Cálculo automático de início/fim de dia
+  - Filename dinâmico com data (relatorio_ID_YYYYMMDD_YYYYMMDD)
+  - Content-types corretos (application/pdf, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+  - Integração com PosicaoService para dados atuais
+  - Tratamento de erros com Result pattern
 
 ---
 
-## Próximos Passos
+## Status do Projeto
 
-**Concluído**: ✅ Fase 1 (Autenticação JWT), ✅ Fase 2 (Serviços CRUD), ✅ Fase 3 (Posição Consolidada) e ✅ Fase 4 (Importação PDF)
+**✅ TODAS AS FASES CONCLUÍDAS!**
 
-**Próximo**: 🎯 Fase 5 - Implementar RelatorioService (Relatórios e métricas financeiras - IRR, TWR)
+- ✅ **Fase 1**: Autenticação JWT com BCrypt
+- ✅ **Fase 2**: Serviços CRUD (Usuario, Carteira, Transacao)
+- ✅ **Fase 3**: Posição Consolidada com algoritmo WAC
+- ✅ **Fase 4**: Importação de Notas de Corretagem (PDF Clear/XP)
+- ✅ **Fase 5**: Relatórios e Métricas Financeiras (IRR, TWR, PDF, Excel)
+
+**Sistema Backend Completo** - Pronto para produção ou integração com frontend!
 
 **Ordem recomendada**:
 1. UsuarioService (depende de AuthService para contexto de usuário)

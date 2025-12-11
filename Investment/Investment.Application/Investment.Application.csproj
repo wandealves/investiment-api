@@ -8,7 +8,9 @@
 
     <ItemGroup>
         <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+        <PackageReference Include="ClosedXML" Version="0.104.2" />
         <PackageReference Include="itext7" Version="8.0.5" />
+        <PackageReference Include="QuestPDF" Version="2024.12.3" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.0" />
     </ItemGroup>
 

@@ -58,6 +58,9 @@ builder.Services.AddScoped<Investment.Application.Services.PDF.IPdfParserStrateg
 builder.Services.AddScoped<Investment.Application.Services.PDF.IPdfParserService, Investment.Application.Services.PDF.PdfParserService>();
 builder.Services.AddScoped<IImportacaoService, ImportacaoService>();
 
+// Registrar serviços de relatórios
+builder.Services.AddScoped<IRelatorioService, RelatorioService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -87,6 +90,7 @@ app.RegistrarTransacaoEndpoints();
 app.RegistrarPosicaoEndpoints();
 app.RegistrarAtivoEndpoints();
 app.RegistrarImportacaoEndpoints();
+app.RegistrarRelatorioEndpoints();
 
 var summaries = new[]
 {
