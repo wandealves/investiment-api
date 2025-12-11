@@ -52,6 +52,12 @@ builder.Services.AddScoped<ICarteiraService, CarteiraService>();
 builder.Services.AddScoped<ITransacaoService, TransacaoService>();
 builder.Services.AddScoped<IPosicaoService, PosicaoService>();
 
+// Registrar serviços de importação PDF
+builder.Services.AddScoped<Investment.Application.Services.PDF.IPdfParserStrategy, Investment.Application.Services.PDF.ClearPdfParser>();
+builder.Services.AddScoped<Investment.Application.Services.PDF.IPdfParserStrategy, Investment.Application.Services.PDF.XPPdfParser>();
+builder.Services.AddScoped<Investment.Application.Services.PDF.IPdfParserService, Investment.Application.Services.PDF.PdfParserService>();
+builder.Services.AddScoped<IImportacaoService, ImportacaoService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -80,6 +86,7 @@ app.RegistrarCarteiraEndpoints();
 app.RegistrarTransacaoEndpoints();
 app.RegistrarPosicaoEndpoints();
 app.RegistrarAtivoEndpoints();
+app.RegistrarImportacaoEndpoints();
 
 var summaries = new[]
 {

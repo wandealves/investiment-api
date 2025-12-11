@@ -284,28 +284,68 @@ EF Core mappings in `Investment.Infrastructure/Mapping/`:
 
 ---
 
-### 🔄 FASE 4: IMPORTAÇÃO DE NOTAS DE CORRETAGEM (PENDENTE)
+### ✅ FASE 4: IMPORTAÇÃO DE NOTAS DE CORRETAGEM (COMPLETO)
 
 **Objetivo**: Importar transações automaticamente de PDFs de corretoras
 
-**Status**: ⏳ Não iniciado
+**Status**: ✅ Concluído
 
-**Pendente**:
-- ⏳ Pacote: `itext7` (versão 8.0.5)
-- ⏳ Value Objects: `NotaCorretagem`, `OperacaoNota`, `CustosNota`
-- ⏳ DTOs: `ImportacaoRequest`, `ImportacaoResponse`
-- ⏳ Strategy Pattern para parsers:
-  - `IPdfParserStrategy` interface
-  - `ClearPdfParser` - Parser para corretora Clear/XP
-  - `XPPdfParser` - Parser alternativo para XP
-  - `PdfParserService` - Orquestrador
-- ⏳ Service: `IImportacaoService` / `ImportacaoService`
-- ⏳ Endpoints `/api/v1/importacao`:
-  - POST `/preview` - Preview sem salvar
-  - POST `/confirmar` - Importar e salvar
-- ⏳ Algoritmo de distribuição proporcional de custos
-- ⏳ Auto-criação de ativos desconhecidos
-- ⏳ Validações: Tamanho máx 5MB, apenas PDF, detecção de duplicatas
+**Implementado**:
+- ✅ **Pacote NuGet**: `itext7` versão 8.0.5 para parsing de PDF
+
+- ✅ **Value Objects** (Domain Layer):
+  - `NotaCorretagem` - Representa nota completa com número, corretora, data, operações e custos
+  - `OperacaoNota` - Operação individual (ticker, tipo C/V, quantidade, preços, taxas)
+  - `CustosNota` - Custos agregados (liquidação, emolumentos, ISS, corretagem, outros)
+
+- ✅ **DTOs de Importação**:
+  - `ImportacaoRequest` - CarteiraId e CorretoraTipo (Clear ou XP)
+  - `ImportacaoResponse` - Sucesso, contadores, erros, avisos, preview de transações
+
+- ✅ **Strategy Pattern para Parsers PDF**:
+  - `IPdfParserStrategy` - Interface base para parsers
+  - `ClearPdfParser` - Parser específico para notas da corretora Clear
+    - Regex para extração de número da nota, data pregão, operações e custos
+    - Suporta formato Clear com tickers brasileiros (PETR4, IVVB11, etc.)
+  - `XPPdfParser` - Parser específico para notas da corretora XP
+    - Regex adaptado para formato XP
+    - Padrões alternativos para maior compatibilidade
+  - `PdfParserService` - Orquestrador que seleciona o parser correto
+
+- ✅ **Algoritmo de Distribuição Proporcional de Custos**:
+  - Distribui custos totais da nota proporcionalmente ao valor de cada operação
+  - Fórmula: `CustoOperação = (ValorOperação / ValorTotalOperações) * CustoTotal`
+  - Preço final ajustado: `PrecoFinal = PrecoUnitário + (CustosProporcionais / Quantidade)`
+
+- ✅ **ImportacaoService**:
+  - `PreviewImportacaoAsync()` - Visualização sem salvar no banco
+  - `ImportarNotaAsync()` - Importação definitiva com salvamento
+  - Auto-criação de ativos desconhecidos com tipo "Acao" (editável depois)
+  - Detecção de duplicatas (verifica transações ±1 dia)
+  - Verificação de ownership da carteira
+  - Sistema de avisos para alertar sobre duplicatas e ativos auto-criados
+
+- ✅ **Endpoints `/api/v1/importacao`**:
+  - POST `/preview` - Preview da importação sem salvar
+    - Upload multipart/form-data
+    - Retorna preview completo das transações
+  - POST `/confirmar` - Importar e salvar transações
+    - Persiste no banco de dados
+    - Retorna resumo (criadas/ignoradas)
+
+- ✅ **Validações de Segurança**:
+  - Tamanho máximo: 5MB
+  - Content-type: application/pdf
+  - Verificação de magic bytes (%PDF) para garantir PDF válido
+  - Ownership da carteira
+  - Sanitização de inputs
+
+- ✅ **Recursos Adicionais**:
+  - Parsing robusto com tratamento de erros por operação
+  - Sistema de erros e avisos separados
+  - Preview permite revisão antes de confirmar
+  - Suporte a múltiplas operações por nota
+  - Conversão automática de formato brasileiro (vírgula/ponto)
 
 ---
 
@@ -334,9 +374,9 @@ EF Core mappings in `Investment.Infrastructure/Mapping/`:
 
 ## Próximos Passos
 
-**Concluído**: ✅ Fase 1 (Autenticação JWT), ✅ Fase 2 (Serviços CRUD) e ✅ Fase 3 (Posição Consolidada)
+**Concluído**: ✅ Fase 1 (Autenticação JWT), ✅ Fase 2 (Serviços CRUD), ✅ Fase 3 (Posição Consolidada) e ✅ Fase 4 (Importação PDF)
 
-**Próximo**: 🎯 Fase 4 - Implementar ImportacaoService (Importação de PDFs de corretoras)
+**Próximo**: 🎯 Fase 5 - Implementar RelatorioService (Relatórios e métricas financeiras - IRR, TWR)
 
 **Ordem recomendada**:
 1. UsuarioService (depende de AuthService para contexto de usuário)
