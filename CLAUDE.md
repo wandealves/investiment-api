@@ -239,20 +239,48 @@ EF Core mappings in `Investment.Infrastructure/Mapping/`:
 
 ---
 
-### 🔄 FASE 3: POSIÇÃO CONSOLIDADA (PENDENTE)
+### ✅ FASE 3: POSIÇÃO CONSOLIDADA (COMPLETO)
 
 **Objetivo**: Calcular posição atual, preço médio e rentabilidade de cada ativo
 
-**Status**: ⏳ Não iniciado
+**Status**: ✅ Concluído
 
-**Pendente**:
-- ⏳ Algoritmo **Weighted Average Cost (WAC)** para cálculo de preço médio
-- ⏳ Suporte a eventos corporativos: Split, Grupamento
-- ⏳ Cálculo de dividendos recebidos
-- ⏳ DTOs: `PosicaoAtivoResponse`, `PosicaoConsolidadaResponse`, `DistribuicaoTipoResponse`
-- ⏳ Service: `IPosicaoService` / `PosicaoService`
-- ⏳ Endpoint: `/api/v1/carteiras/{id}/posicao`
-- ⏳ Performance: Cache com `IMemoryCache` (TTL 5min)
+**Implementado**:
+- ✅ **DTOs de Posição**:
+  - `PosicaoAtivoResponse` - Posição individual de um ativo (quantidade, preço médio, valor investido, dividendos)
+  - `PosicaoConsolidadaResponse` - Posição de toda a carteira com totalizadores
+  - `DistribuicaoTipoResponse` - Distribuição percentual por tipo de ativo
+
+- ✅ **PosicaoService**: Cálculo completo de posições
+  - Service: `IPosicaoService` / `PosicaoService`
+  - Métodos:
+    - `CalcularPosicaoAsync(carteiraId, usuarioId)` - Posição consolidada da carteira
+    - `CalcularPosicaoAtivoAsync(carteiraId, ativoId, usuarioId)` - Posição de um ativo específico
+    - `CalcularTodasPosicoesAsync(usuarioId)` - Todas as carteiras do usuário
+
+- ✅ **Algoritmo WAC (Weighted Average Cost)**:
+  - Compra: Recalcula preço médio ponderado
+  - Venda: Reduz quantidade, mantém preço médio
+  - Dividendo/JCP: Acumula proventos (não afeta preço médio)
+  - Bonus: Aumenta quantidade, recalcula preço médio
+  - Split: Multiplica quantidade, divide preço médio
+  - Grupamento: Divide quantidade, multiplica preço médio
+  - Zera preço médio quando posição é completamente vendida
+
+- ✅ **Endpoints `/api/v1/carteiras/{carteiraId}/posicao`**:
+  - GET `/{carteiraId}/posicao` - Posição consolidada da carteira
+  - GET `/{carteiraId}/posicao/{ativoId}` - Posição de um ativo específico
+
+- ✅ **Endpoint `/api/v1/posicoes`**:
+  - GET `/` - Posições de todas as carteiras do usuário
+
+- ✅ **Recursos Adicionais**:
+  - Cálculo de dividendos recebidos por ativo
+  - Distribuição por tipo de ativo (Ação, FII, ETF, etc.)
+  - Data da primeira compra e última transação
+  - Suporte completo a eventos corporativos
+  - Autorização por ownership em todas as operações
+  - Estrutura preparada para integração futura com APIs de cotação (PrecoAtual, ValorAtual, Lucro, Rentabilidade)
 
 ---
 
@@ -306,9 +334,9 @@ EF Core mappings in `Investment.Infrastructure/Mapping/`:
 
 ## Próximos Passos
 
-**Concluído**: ✅ Fase 1 (Autenticação JWT) e ✅ Fase 2 (Serviços CRUD)
+**Concluído**: ✅ Fase 1 (Autenticação JWT), ✅ Fase 2 (Serviços CRUD) e ✅ Fase 3 (Posição Consolidada)
 
-**Próximo**: 🎯 Fase 3 - Implementar PosicaoService (Cálculo de preço médio e rentabilidade)
+**Próximo**: 🎯 Fase 4 - Implementar ImportacaoService (Importação de PDFs de corretoras)
 
 **Ordem recomendada**:
 1. UsuarioService (depende de AuthService para contexto de usuário)

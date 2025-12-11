@@ -50,6 +50,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ICarteiraService, CarteiraService>();
 builder.Services.AddScoped<ITransacaoService, TransacaoService>();
+builder.Services.AddScoped<IPosicaoService, PosicaoService>();
 
 var app = builder.Build();
 
@@ -77,6 +78,7 @@ app.RegistrarAuthEndpoints();
 app.RegistrarUsuarioEndpoints();
 app.RegistrarCarteiraEndpoints();
 app.RegistrarTransacaoEndpoints();
+app.RegistrarPosicaoEndpoints();
 app.RegistrarAtivoEndpoints();
 
 var summaries = new[]
