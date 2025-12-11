@@ -1,8 +1,11 @@
+using System.Text;
 using Investment.Api.Endpoints;
 using Investment.Application.Services;
 using Investment.Infrastructure.Context;
 using Investment.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +17,25 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<InvestmentDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
+// Configurar autenticação JWT
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]!))
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 // Registrar repositórios
 builder.Services.AddScoped<IAtivoRepository, AtivoRepository>();
 builder.Services.AddScoped<ICarteiraRepository, CarteiraRepository>();
@@ -23,6 +45,8 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
 // Registrar serviços
 builder.Services.AddScoped<IAtivoService, AtivoService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 var app = builder.Build();
 
@@ -41,7 +65,12 @@ app.MapScalarApiReference(options =>
 
 app.UseHttpsRedirection();
 
+// Middleware de autenticação e autorização
+app.UseAuthentication();
+app.UseAuthorization();
+
 // Registrar endpoints
+app.RegistrarAuthEndpoints();
 app.RegistrarAtivoEndpoints();
 
 var summaries = new[]

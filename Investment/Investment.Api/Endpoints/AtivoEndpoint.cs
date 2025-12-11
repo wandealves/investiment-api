@@ -38,35 +38,9 @@ public static class AtivoEndpoint
         .WithDescription("Lista todos os ativos com suporte a paginação e filtros (Gridify)")
         .Produces<object>(StatusCodes.Status200OK)
         .Produces<object>(StatusCodes.Status400BadRequest);
-
-        // GET /api/v1/ativos/todos - Listar todos os ativos sem paginação
-        group.MapGet("/todos", async (IAtivoService service) =>
-        {
-            var resultado = await service.ObterTodosAsync();
-
-            if (!resultado.IsSuccess)
-            {
-                return Results.BadRequest(new
-                {
-                    success = false,
-                    errors = resultado.Errors,
-                    validationErrors = resultado.ValidationErrors
-                });
-            }
-
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
-        })
-        .WithName("Listar Todos Ativos")
-        .WithDescription("Lista todos os ativos sem paginação")
-        .Produces<object>(StatusCodes.Status200OK)
-        .Produces<object>(StatusCodes.Status400BadRequest);
-
+        
         // GET /api/v1/ativos/buscar/{termo} - Buscar ativos por termo
-        group.MapGet("/buscar/{termo}", async (string termo, IAtivoService service) =>
+        group.MapGet("/termo/{termo}", async (string termo, IAtivoService service) =>
         {
             var resultado = await service.BuscarAsync(termo);
 
