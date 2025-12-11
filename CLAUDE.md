@@ -179,31 +179,63 @@ EF Core mappings in `Investment.Infrastructure/Mapping/`:
 
 ---
 
-### 🔄 FASE 2: SERVIÇOS CRUD (PENDENTE)
+### ✅ FASE 2: SERVIÇOS CRUD (COMPLETO)
 
 **Objetivo**: Implementar serviços completos para Usuario, Carteira e Transacao
 
-**Status**: ⏳ Não iniciado
+**Status**: ✅ Concluído
 
-**Pendente**:
-- ⏳ **UsuarioService**: CRUD de usuários com autorização por ownership
+**Implementado**:
+- ✅ **UsuarioService**: CRUD de usuários com autorização por ownership
   - DTOs: `UsuarioRequest`, `UsuarioResponse`, `UsuarioComCarteirasResponse`
   - Mapper: `UsuarioMapper`
-  - Endpoint: `/api/v1/usuarios`
-  - Regra: Usuários só acessam próprios dados
+  - Service: `IUsuarioService` / `UsuarioService`
+  - Endpoints `/api/v1/usuarios`:
+    - GET `/{id}` - Obter usuário por ID
+    - GET `/{id}/carteiras` - Obter usuário com carteiras
+    - PUT `/{id}` - Atualizar usuário (nome e email)
+    - DELETE `/{id}` - Excluir usuário
+  - Regra: Usuários só acessam próprios dados (verificação id == usuarioAutenticadoId)
 
-- ⏳ **CarteiraService**: Gestão de carteiras de investimento
+- ✅ **CarteiraService**: Gestão de carteiras de investimento
   - DTOs: `CarteiraRequest`, `CarteiraResponse`, `CarteiraComDetalhesResponse`
   - Mapper: `CarteiraMapper`
-  - Endpoint: `/api/v1/carteiras`
+  - Service: `ICarteiraService` / `CarteiraService`
+  - Endpoints `/api/v1/carteiras`:
+    - GET `/` - Listar carteiras do usuário
+    - GET `/{id}` - Obter carteira por ID
+    - GET `/{id}/detalhes` - Obter carteira com ativos e transações
+    - POST `/` - Criar carteira
+    - PUT `/{id}` - Atualizar carteira
+    - DELETE `/{id}` - Excluir carteira (bloqueado se houver transações)
   - Regra: Verificar ownership via `UsuarioPossuiCarteiraAsync()`
 
-- ⏳ **TransacaoService**: Gestão de transações financeiras
+- ✅ **TransacaoService**: Gestão de transações financeiras
   - DTOs: `TransacaoRequest`, `TransacaoResponse`, `TransacaoComDetalhesResponse`
   - Constants: `TipoTransacao` (Compra, Venda, Dividendo, JCP, Bonus, Split, Grupamento)
   - Mapper: `TransacaoMapper`
-  - Endpoint: `/api/v1/transacoes` e `/api/v1/carteiras/{id}/transacoes`
-  - Validações: Saldo suficiente para venda, preço > 0, carteira ownership
+  - Service: `ITransacaoService` / `TransacaoService`
+  - Endpoints `/api/v1/transacoes`:
+    - GET `/{id}` - Obter transação por ID
+    - POST `/` - Criar transação
+    - PUT `/{id}` - Atualizar transação
+    - DELETE `/{id}` - Excluir transação
+  - Endpoints `/api/v1/carteiras/{carteiraId}/transacoes`:
+    - GET `/` - Listar transações da carteira
+    - GET `/periodo?inicio=&fim=` - Filtrar por período
+  - Validações:
+    - ✅ Saldo suficiente para venda (calcula posição atual considerando compras/vendas/split/grupamento)
+    - ✅ Preço > 0
+    - ✅ Tipo de transação válido
+    - ✅ Data não no futuro
+    - ✅ Carteira ownership
+    - ✅ Ativo existe
+
+**Recursos Adicionais**:
+- ✅ Validação de saldo para vendas com cálculo de posição
+- ✅ Suporte a eventos corporativos (Split e Grupamento)
+- ✅ Proteção contra exclusão de carteiras com transações (RESTRICT)
+- ✅ Autorização rigorosa em todas as operações
 
 ---
 
@@ -274,9 +306,9 @@ EF Core mappings in `Investment.Infrastructure/Mapping/`:
 
 ## Próximos Passos
 
-**Atual**: ✅ Fase 1 completa (Autenticação JWT)
+**Concluído**: ✅ Fase 1 (Autenticação JWT) e ✅ Fase 2 (Serviços CRUD)
 
-**Próximo**: 🎯 Fase 2 - Implementar UsuarioService, CarteiraService e TransacaoService
+**Próximo**: 🎯 Fase 3 - Implementar PosicaoService (Cálculo de preço médio e rentabilidade)
 
 **Ordem recomendada**:
 1. UsuarioService (depende de AuthService para contexto de usuário)

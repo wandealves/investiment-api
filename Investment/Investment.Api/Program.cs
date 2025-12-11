@@ -47,6 +47,9 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IAtivoService, AtivoService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<ICarteiraService, CarteiraService>();
+builder.Services.AddScoped<ITransacaoService, TransacaoService>();
 
 var app = builder.Build();
 
@@ -71,6 +74,9 @@ app.UseAuthorization();
 
 // Registrar endpoints
 app.RegistrarAuthEndpoints();
+app.RegistrarUsuarioEndpoints();
+app.RegistrarCarteiraEndpoints();
+app.RegistrarTransacaoEndpoints();
 app.RegistrarAtivoEndpoints();
 
 var summaries = new[]
