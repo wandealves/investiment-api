@@ -25,17 +25,12 @@ public static class RelatorioEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Gerar Relatório de Rentabilidade")
         .WithDescription("Gera relatório de rentabilidade com IRR, TWR e retorno simples para um período específico")
@@ -58,17 +53,12 @@ public static class RelatorioEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Gerar Relatório de Proventos")
         .WithDescription("Gera relatório de proventos (dividendos e JCP) recebidos no período")
@@ -91,7 +81,6 @@ public static class RelatorioEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors
                 });
             }
@@ -120,7 +109,6 @@ public static class RelatorioEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors
                 });
             }

@@ -23,17 +23,12 @@ public static class PosicaoEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Calcular Posição Consolidada")
         .WithDescription("Calcula a posição consolidada da carteira com preço médio (WAC), quantidade atual e rentabilidade")
@@ -55,17 +50,12 @@ public static class PosicaoEndpoint
             {
                 return Results.NotFound(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Calcular Posição de Ativo")
         .WithDescription("Calcula a posição de um ativo específico na carteira")
@@ -87,17 +77,12 @@ public static class PosicaoEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Calcular Todas as Posições")
         .WithDescription("Calcula a posição consolidada de todas as carteiras do usuário")

@@ -22,17 +22,12 @@ public static class TransacaoEndpoint
             {
                 return Results.NotFound(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Obter Transação por ID")
         .WithDescription("Obtém uma transação específica")
@@ -50,17 +45,12 @@ public static class TransacaoEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Created($"/api/v1/transacoes/{resultado.Data!.Id}", new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Created($"/api/v1/transacoes/{resultado.Data!.Id}", resultado.Data);
         })
         .WithName("Criar Transação")
         .WithDescription("Cria uma nova transação (compra, venda, dividendo, etc.)")
@@ -78,17 +68,12 @@ public static class TransacaoEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Atualizar Transação")
         .WithDescription("Atualiza uma transação existente")
@@ -106,7 +91,6 @@ public static class TransacaoEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
@@ -135,17 +119,12 @@ public static class TransacaoEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Listar Transações da Carteira")
         .WithDescription("Lista todas as transações de uma carteira")
@@ -168,17 +147,12 @@ public static class TransacaoEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Filtrar Transações por Período")
         .WithDescription("Filtra transações de uma carteira por período (query params: inicio e fim)")

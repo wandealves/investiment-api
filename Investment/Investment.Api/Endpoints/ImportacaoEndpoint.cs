@@ -37,17 +37,12 @@ public static class ImportacaoEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     data = resultado.Data
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Preview Importação")
         .WithDescription("Faz o preview da importação sem salvar as transações no banco de dados")
@@ -87,7 +82,6 @@ public static class ImportacaoEndpoint
 
             return Results.Ok(new
             {
-                success = true,
                 message = $"{resultado.Data?.TransacoesCriadas} transação(ões) importada(s) com sucesso",
                 data = resultado.Data
             });

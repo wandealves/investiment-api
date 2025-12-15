@@ -22,17 +22,12 @@ public static class CarteiraEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Listar Carteiras")
         .WithDescription("Lista todas as carteiras do usuário autenticado")
@@ -50,17 +45,12 @@ public static class CarteiraEndpoint
             {
                 return Results.NotFound(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Obter Carteira por ID")
         .WithDescription("Obtém uma carteira específica do usuário")
@@ -78,17 +68,12 @@ public static class CarteiraEndpoint
             {
                 return Results.NotFound(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Obter Carteira com Detalhes")
         .WithDescription("Obtém uma carteira com todos os ativos e transações")
@@ -106,17 +91,12 @@ public static class CarteiraEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Created($"/api/v1/carteiras/{resultado.Data!.Id}", new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Created($"/api/v1/carteiras/{resultado.Data!.Id}", resultado.Data);
         })
         .WithName("Criar Carteira")
         .WithDescription("Cria uma nova carteira para o usuário autenticado")
@@ -134,17 +114,12 @@ public static class CarteiraEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Atualizar Carteira")
         .WithDescription("Atualiza uma carteira existente")
@@ -162,7 +137,6 @@ public static class CarteiraEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
@@ -174,6 +148,30 @@ public static class CarteiraEndpoint
         .WithDescription("Exclui uma carteira (não permitido se houver transações)")
         .Produces(StatusCodes.Status204NoContent)
         .Produces<object>(StatusCodes.Status400BadRequest)
+        .Produces<object>(StatusCodes.Status401Unauthorized);
+
+        // GET /api/v1/carteiras/{id}/ativos - Obter posições (ativos) da carteira
+        group.MapGet("/{id:long}/ativos", async (long id, HttpContext context, IPosicaoService posicaoService) =>
+        {
+            var usuarioId = context.GetUsuarioId();
+            var resultado = await posicaoService.CalcularPosicaoAsync(id, usuarioId);
+
+            if (!resultado.IsSuccess)
+            {
+                return Results.NotFound(new
+                {
+                    errors = resultado.Errors,
+                    validationErrors = resultado.ValidationErrors
+                });
+            }
+
+            // Retornar apenas a lista de posições (ativos)
+            return Results.Ok(resultado.Data.Posicoes);
+        })
+        .WithName("Listar Ativos da Carteira")
+        .WithDescription("Obtém a lista de ativos (posições) da carteira com informações de quantidade, preço médio e rentabilidade")
+        .Produces<object>(StatusCodes.Status200OK)
+        .Produces<object>(StatusCodes.Status404NotFound)
         .Produces<object>(StatusCodes.Status401Unauthorized);
     }
 }

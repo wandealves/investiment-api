@@ -22,17 +22,12 @@ public static class UsuarioEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Obter Usuário por ID")
         .WithDescription("Obtém os dados do usuário autenticado")
@@ -50,17 +45,12 @@ public static class UsuarioEndpoint
             {
                 return Results.NotFound(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Obter Usuário com Carteiras")
         .WithDescription("Obtém os dados do usuário com todas as suas carteiras")
@@ -78,17 +68,12 @@ public static class UsuarioEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Atualizar Usuário")
         .WithDescription("Atualiza os dados do usuário autenticado (nome e email)")

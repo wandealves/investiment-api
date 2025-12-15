@@ -22,43 +22,33 @@ public static class AtivoEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Listar Ativos")
         .WithDescription("Lista todos os ativos com suporte a paginação e filtros (Gridify)")
         .Produces<object>(StatusCodes.Status200OK)
         .Produces<object>(StatusCodes.Status400BadRequest);
         
-        // GET /api/v1/ativos/buscar/{termo} - Buscar ativos por termo
-        group.MapGet("/termo/{termo}", async (string termo, IAtivoService service) =>
+        // GET /api/v1/ativos/search?q={query} - Buscar ativos por query
+        group.MapGet("/search", async (string q, IAtivoService service) =>
         {
-            var resultado = await service.BuscarAsync(termo);
+            var resultado = await service.BuscarAsync(q);
 
             if (!resultado.IsSuccess)
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Buscar Ativos")
         .WithDescription("Busca ativos por termo (nome, código ou tipo)")
@@ -74,17 +64,12 @@ public static class AtivoEndpoint
             {
                 return Results.NotFound(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Obter Ativo por ID")
         .WithDescription("Obtém um ativo específico pelo ID")
@@ -100,17 +85,12 @@ public static class AtivoEndpoint
             {
                 return Results.NotFound(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Obter Ativo por Código")
         .WithDescription("Obtém um ativo específico pelo código (ex: PETR4, IVVB11)")
@@ -126,17 +106,12 @@ public static class AtivoEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Created($"/api/v1/ativos/{resultado.Data!.Id}", new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Created($"/api/v1/ativos/{resultado.Data!.Id}", resultado.Data);
         })
         .WithName("Criar Ativo")
         .WithDescription("Cria um novo ativo")
@@ -152,17 +127,12 @@ public static class AtivoEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Atualizar Ativo")
         .WithDescription("Atualiza um ativo existente")
@@ -179,7 +149,6 @@ public static class AtivoEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });

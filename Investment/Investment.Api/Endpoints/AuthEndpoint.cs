@@ -1,5 +1,6 @@
 using Investment.Application.DTOs.Auth;
 using Investment.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Investment.Api.Endpoints;
 
@@ -20,17 +21,12 @@ public static class AuthEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Created($"/api/v1/usuarios/{resultado.Data!.Usuario.Id}", new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Created($"/api/v1/usuarios/{resultado.Data!.Usuario.Id}", resultado.Data);
         })
         .WithName("Registrar Usuário")
         .WithDescription("Registra um novo usuário no sistema")
@@ -46,17 +42,12 @@ public static class AuthEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                data = resultado.Data
-            });
+            return Results.Ok(resultado.Data);
         })
         .WithName("Login")
         .WithDescription("Autentica um usuário e retorna um token JWT")
@@ -80,16 +71,12 @@ public static class AuthEndpoint
             {
                 return Results.BadRequest(new
                 {
-                    success = false,
                     errors = resultado.Errors,
                     validationErrors = resultado.ValidationErrors
                 });
             }
 
-            return Results.Ok(new
-            {
-                success = true
-            });
+            return Results.NoContent();
         })
         .RequireAuthorization()
         .WithName("Alterar Senha")
@@ -101,20 +88,21 @@ public static class AuthEndpoint
         // GET /api/v1/auth/me - Obter dados do usuário autenticado (protegido)
         group.MapGet("/me", async (
             HttpContext context,
-            IAuthService service) =>
+            IUsuarioService usuarioService) =>
         {
             var usuarioId = context.GetUsuarioId();
+            var resultado = await usuarioService.ObterPorIdAsync(usuarioId, usuarioId);
 
-            // Buscar usuario completo via service (será criado depois)
-            return Results.Ok(new
+            if (!resultado.IsSuccess)
             {
-                success = true,
-                data = new
+                return Results.NotFound(new
                 {
-                    id = usuarioId,
-                    message = "Usuário autenticado"
-                }
-            });
+                    errors = resultado.Errors,
+                    validationErrors = resultado.ValidationErrors
+                });
+            }
+
+            return Results.Ok(resultado.Data);
         })
         .RequireAuthorization()
         .WithName("Usuário Autenticado")

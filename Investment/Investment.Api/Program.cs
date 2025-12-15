@@ -36,6 +36,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// Configurar CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:3000",      // Vite dev server
+                "http://localhost:5173",      // Vite default port
+                "http://127.0.0.1:3000",
+                "http://127.0.0.1:5173"
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
+});
+
 // Registrar repositórios
 builder.Services.AddScoped<IAtivoRepository, AtivoRepository>();
 builder.Services.AddScoped<ICarteiraRepository, CarteiraRepository>();
@@ -61,6 +78,9 @@ builder.Services.AddScoped<IImportacaoService, ImportacaoService>();
 // Registrar serviços de relatórios
 builder.Services.AddScoped<IRelatorioService, RelatorioService>();
 
+// Registrar serviços de dashboard
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -78,6 +98,9 @@ app.MapScalarApiReference(options =>
 
 app.UseHttpsRedirection();
 
+// CORS deve vir antes de autenticação/autorização
+app.UseCors("AllowFrontend");
+
 // Middleware de autenticação e autorização
 app.UseAuthentication();
 app.UseAuthorization();
@@ -91,6 +114,7 @@ app.RegistrarPosicaoEndpoints();
 app.RegistrarAtivoEndpoints();
 app.RegistrarImportacaoEndpoints();
 app.RegistrarRelatorioEndpoints();
+app.RegistrarDashboardEndpoints();
 
 var summaries = new[]
 {
