@@ -11,7 +11,8 @@ public static class AtivoEndpoint
     {
         var group = routes.MapGroup("/api/v1/ativos")
             .WithName("Ativos")
-            .WithTags("Ativos");
+            .WithTags("Ativos")
+            .RequireAuthorization();
 
         // GET /api/v1/ativos - Listar todos os ativos com paginação e filtros
         group.MapGet("", async ([AsParameters] GridifyQuery query, IAtivoService service) =>
