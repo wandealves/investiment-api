@@ -105,6 +105,20 @@ public class CarteiraRepository(InvestmentDbContext context) : ICarteiraReposito
             .ConfigureAwait(false);
     }
 
+    public async Task<Paging<Carteira>> ObterPorUsuarioAsync(GridifyQuery query, Guid usuarioId)
+    {
+        if (query == null)
+            throw new ArgumentNullException(nameof(query));
+
+        var queryable = context.Carteiras
+            .AsNoTracking()
+            .Where(c => c.UsuarioId == usuarioId);
+
+        return await queryable
+            .GridifyAsync(query)
+            .ConfigureAwait(false);
+    }
+
     public async Task<List<Carteira>> ObterPorPeriodoAsync(DateTime inicio, DateTime fim)
     {
         return await context.Carteiras

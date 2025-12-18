@@ -1,3 +1,4 @@
+using Gridify;
 using Investment.Application.DTOs.Carteira;
 using Investment.Application.Mappers;
 using Investment.Domain.Common;
@@ -14,6 +15,19 @@ public class CarteiraService : ICarteiraService
     {
         _carteiraRepository = carteiraRepository;
         _usuarioRepository = usuarioRepository;
+    }
+
+    public async Task<Result<Paging<CarteiraResponse>>> ObterAsync(GridifyQuery query, Guid usuarioId)
+    {
+        var paging = await _carteiraRepository.ObterPorUsuarioAsync(query, usuarioId);
+
+        var responsePaging = new Paging<CarteiraResponse>
+        {
+            Count = paging.Count,
+            Data = paging.Data.Select(CarteiraMapper.ToResponse).ToList()
+        };
+
+        return Result<Paging<CarteiraResponse>>.Success(responsePaging);
     }
 
     public async Task<Result<List<CarteiraResponse>>> ObterPorUsuarioAsync(Guid usuarioId)

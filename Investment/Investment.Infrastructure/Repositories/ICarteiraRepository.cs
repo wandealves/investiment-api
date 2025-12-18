@@ -10,6 +10,7 @@ public interface ICarteiraRepository
     Task<List<Carteira>> ObterPorUsuarioIdAsync(Guid usuarioId);
     Task<List<Carteira>> BuscarPorNomeAsync(string nome);
     Task<Paging<Carteira>> ObterAsync(GridifyQuery query);
+    Task<Paging<Carteira>> ObterPorUsuarioAsync(GridifyQuery query, Guid usuarioId);
     Task<List<Carteira>> ObterPorPeriodoAsync(DateTime inicio, DateTime fim);
     Task<Carteira?> ObterComTransacoesAsync(long id);
     Task<Carteira?> ObterComAtivosAsync(long id);
