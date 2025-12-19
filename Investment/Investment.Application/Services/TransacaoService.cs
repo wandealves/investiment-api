@@ -1,3 +1,4 @@
+using Gridify;
 using Investment.Application.DTOs.Transacao;
 using Investment.Application.Mappers;
 using Investment.Domain.Common;
@@ -41,18 +42,24 @@ public class TransacaoService : ITransacaoService
         return Result<TransacaoResponse>.Success(response);
     }
 
-    public async Task<Result<List<TransacaoResponse>>> ObterPorCarteiraAsync(long carteiraId, Guid usuarioId)
+    public async Task<Result<Paging<TransacaoResponse>>> ObterPorCarteiraAsync(long carteiraId, GridifyQuery query, Guid usuarioId)
     {
         // Verificar ownership
         var pertenceAoUsuario = await _carteiraRepository.UsuarioPossuiCarteiraAsync(usuarioId, carteiraId);
         if (!pertenceAoUsuario)
         {
-            return Result<List<TransacaoResponse>>.Failure("Acesso negado: esta carteira não pertence ao usuário autenticado");
+            return Result<Paging<TransacaoResponse>>.Failure("Acesso negado: esta carteira não pertence ao usuário autenticado");
         }
 
-        var transacoes = await _transacaoRepository.ObterPorCarteiraIdAsync(carteiraId);
-        var responses = TransacaoMapper.ToResponseList(transacoes);
-        return Result<List<TransacaoResponse>>.Success(responses);
+        var paging = await _transacaoRepository.ObterPorCarteiraAsync(carteiraId, query);
+
+        var responsePaging = new Paging<TransacaoResponse>
+        {
+            Count = paging.Count,
+            Data = paging.Data.Select(TransacaoMapper.ToResponse).ToList()
+        };
+
+        return Result<Paging<TransacaoResponse>>.Success(responsePaging);
     }
 
     public async Task<Result<List<TransacaoResponse>>> ObterPorPeriodoAsync(long carteiraId, DateTime inicio, DateTime fim, Guid usuarioId)

@@ -15,7 +15,7 @@ public static class TransacaoMapper
             Quantidade = request.Quantidade,
             Preco = request.Preco,
             TipoTransacao = request.TipoTransacao,
-            DataTransacao = request.DataTransacao
+            DataTransacao = request.DataTransacao.ToUniversalTime()
         };
     }
 
@@ -69,6 +69,6 @@ public static class TransacaoMapper
         transacao.Quantidade = request.Quantidade;
         transacao.Preco = request.Preco;
         transacao.TipoTransacao = request.TipoTransacao;
-        transacao.DataTransacao = request.DataTransacao;
+        transacao.DataTransacao = request.DataTransacao.ToUniversalTime();
     }
 }

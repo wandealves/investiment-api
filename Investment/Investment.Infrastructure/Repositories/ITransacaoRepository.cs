@@ -9,6 +9,7 @@ public interface ITransacaoRepository
     Task<List<Transacao>> ObterTodosAsync();
     Task<Paging<Transacao>> ObterAsync(GridifyQuery query);
     Task<List<Transacao>> ObterPorCarteiraIdAsync(long carteiraId);
+    Task<Paging<Transacao>> ObterPorCarteiraAsync(long carteiraId, GridifyQuery query);
     Task<List<Transacao>> ObterPorAtivoIdAsync(long ativoId);
     Task<List<Transacao>> ObterPorCarteiraEAtivoAsync(long carteiraId, long ativoId);
     Task<List<Transacao>> ObterPorPeriodoAsync(DateTime inicio, DateTime fim);

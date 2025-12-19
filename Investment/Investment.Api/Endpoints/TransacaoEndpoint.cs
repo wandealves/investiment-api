@@ -1,3 +1,4 @@
+using Gridify;
 using Investment.Application.DTOs.Transacao;
 using Investment.Application.Services;
 
@@ -110,10 +111,10 @@ public static class TransacaoEndpoint
             .RequireAuthorization();
 
         // GET /api/v1/carteiras/{carteiraId}/transacoes - Listar transações da carteira
-        carteiraGroup.MapGet("", async (long carteiraId, HttpContext context, ITransacaoService service) =>
+        carteiraGroup.MapGet("", async (long carteiraId, [AsParameters] GridifyQuery query, HttpContext context, ITransacaoService service) =>
         {
             var usuarioId = context.GetUsuarioId();
-            var resultado = await service.ObterPorCarteiraAsync(carteiraId, usuarioId);
+            var resultado = await service.ObterPorCarteiraAsync(carteiraId, query, usuarioId);
 
             if (!resultado.IsSuccess)
             {
@@ -127,7 +128,7 @@ public static class TransacaoEndpoint
             return Results.Ok(resultado.Data);
         })
         .WithName("Listar Transações da Carteira")
-        .WithDescription("Lista todas as transações de uma carteira")
+        .WithDescription("Lista todas as transações de uma carteira com suporte a paginação e filtros (Gridify)")
         .Produces<object>(StatusCodes.Status200OK)
         .Produces<object>(StatusCodes.Status400BadRequest)
         .Produces<object>(StatusCodes.Status401Unauthorized);

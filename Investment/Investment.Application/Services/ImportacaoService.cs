@@ -100,7 +100,7 @@ public class ImportacaoService : IImportacaoService
                     Quantidade = operacao.TipoOperacao == "V" ? -Math.Abs(operacao.Quantidade) : operacao.Quantidade,
                     Preco = precoFinal,
                     TipoTransacao = operacao.TipoOperacao == "C" ? TipoTransacao.Compra : TipoTransacao.Venda,
-                    DataTransacao = nota.DataPregao
+                    DataTransacao = nota.DataPregao.ToUniversalTime()
                 };
 
                 if (!preview)
