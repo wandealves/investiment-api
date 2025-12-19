@@ -11,6 +11,7 @@ public static class CarteiraMapper
         {
             UsuarioId = usuarioId,
             Nome = request.Nome.Trim(),
+            Descricao = request.Descricao?.Trim(),
             CriadaEm = DateTimeOffset.UtcNow
         };
     }
@@ -22,7 +23,7 @@ public static class CarteiraMapper
             Id = carteira.Id,
             UsuarioId = carteira.UsuarioId,
             Nome = carteira.Nome,
-            Descricao = null, // Campo ainda não existe na entidade
+            Descricao = carteira.Descricao,
             CriadaEm = carteira.CriadaEm,
             TotalAtivos = carteira.CarteirasAtivos?.Count ?? 0,
             TotalTransacoes = carteira.Transacoes?.Count ?? 0
@@ -41,7 +42,7 @@ public static class CarteiraMapper
             Id = carteira.Id,
             UsuarioId = carteira.UsuarioId,
             Nome = carteira.Nome,
-            Descricao = null,
+            Descricao = carteira.Descricao,
             CriadaEm = carteira.CriadaEm,
             TotalAtivos = carteira.CarteirasAtivos?.Count ?? 0,
             TotalTransacoes = carteira.Transacoes?.Count ?? 0,
@@ -59,5 +60,6 @@ public static class CarteiraMapper
     public static void UpdateEntity(Carteira carteira, CarteiraRequest request)
     {
         carteira.Nome = request.Nome.Trim();
+        carteira.Descricao = request.Descricao?.Trim();
     }
 }
