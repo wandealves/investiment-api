@@ -42,6 +42,19 @@ public class TransacaoService : ITransacaoService
         return Result<TransacaoResponse>.Success(response);
     }
 
+    public async Task<Result<Paging<TransacaoResponse>>> ObterPorUsuarioAsync(GridifyQuery query, Guid usuarioId)
+    {
+        var paging = await _transacaoRepository.ObterPorUsuarioAsync(usuarioId, query);
+
+        var responsePaging = new Paging<TransacaoResponse>
+        {
+            Count = paging.Count,
+            Data = paging.Data.Select(TransacaoMapper.ToResponse).ToList()
+        };
+
+        return Result<Paging<TransacaoResponse>>.Success(responsePaging);
+    }
+
     public async Task<Result<Paging<TransacaoResponse>>> ObterPorCarteiraAsync(long carteiraId, GridifyQuery query, Guid usuarioId)
     {
         // Verificar ownership

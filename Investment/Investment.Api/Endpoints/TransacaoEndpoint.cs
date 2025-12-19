@@ -13,6 +13,29 @@ public static class TransacaoEndpoint
             .WithTags("Transações")
             .RequireAuthorization();
 
+        // GET /api/v1/transacoes - Listar todas as transações do usuário
+        group.MapGet("", async ([AsParameters] GridifyQuery query, HttpContext context, ITransacaoService service) =>
+        {
+            var usuarioId = context.GetUsuarioId();
+            var resultado = await service.ObterPorUsuarioAsync(query, usuarioId);
+
+            if (!resultado.IsSuccess)
+            {
+                return Results.BadRequest(new
+                {
+                    errors = resultado.Errors,
+                    validationErrors = resultado.ValidationErrors
+                });
+            }
+
+            return Results.Ok(resultado.Data);
+        })
+        .WithName("Listar Todas as Transações do Usuário")
+        .WithDescription("Lista todas as transações do usuário autenticado (de todas as carteiras) com suporte a paginação e filtros (Gridify)")
+        .Produces<object>(StatusCodes.Status200OK)
+        .Produces<object>(StatusCodes.Status400BadRequest)
+        .Produces<object>(StatusCodes.Status401Unauthorized);
+
         // GET /api/v1/transacoes/{id} - Obter transação por ID
         group.MapGet("/{id:guid}", async (Guid id, HttpContext context, ITransacaoService service) =>
         {

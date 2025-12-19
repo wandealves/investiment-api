@@ -117,6 +117,22 @@ public class TransacaoRepository(InvestmentDbContext context) : ITransacaoReposi
             .ConfigureAwait(false);
     }
 
+    public async Task<Paging<Transacao>> ObterPorUsuarioAsync(Guid usuarioId, GridifyQuery query)
+    {
+        if (query == null)
+            throw new ArgumentNullException(nameof(query));
+
+        var queryable = context.Transacoes
+            .AsNoTracking()
+            .Include(t => t.Carteira)
+            .Include(t => t.Ativo)
+            .Where(t => t.Carteira.UsuarioId == usuarioId);
+
+        return await queryable
+            .GridifyAsync(query)
+            .ConfigureAwait(false);
+    }
+
     public async Task<List<Transacao>> ObterPorAtivoIdAsync(long ativoId)
     {
         return await context.Transacoes
