@@ -166,14 +166,7 @@ public class AtivoService : IAtivoService
             errors.Add("Codigo", new List<string> { "Código deve ter entre 2 e 20 caracteres" });
         }
 
-        if (string.IsNullOrWhiteSpace(request.Tipo))
-        {
-            errors.Add("Tipo", new List<string> { "Tipo é obrigatório" });
-        }
-        else if (request.Tipo.Length > 50)
-        {
-            errors.Add("Tipo", new List<string> { "Tipo deve ter no máximo 50 caracteres" });
-        }
+        // Tipo é validado pelo enum - não precisa validação adicional
 
         if (!string.IsNullOrWhiteSpace(request.Descricao) && request.Descricao.Length > 1000)
         {

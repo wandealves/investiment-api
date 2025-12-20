@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Investment.Domain.Common;
 
 namespace Investment.Application.DTOs;
 
@@ -14,8 +15,7 @@ public class AtivoRequest
     public string Codigo { get; set; } = default!;
 
     [Required(ErrorMessage = "O tipo é obrigatório")]
-    [StringLength(50, ErrorMessage = "O tipo deve ter no máximo 50 caracteres")]
-    public string Tipo { get; set; } = default!;
+    public TipoAtivo Tipo { get; set; }
 
     [StringLength(1000, ErrorMessage = "A descrição deve ter no máximo 1000 caracteres")]
     public string? Descricao { get; set; }

@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Investment.Api.Endpoints;
 using Investment.Application.Services;
 using Investment.Infrastructure.Context;
@@ -13,6 +14,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Configurar JSON para aceitar strings em enums
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 builder.Services.AddDbContext<InvestmentDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));

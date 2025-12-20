@@ -119,7 +119,7 @@ public class DashboardService : IDashboardService
         }
 
         // Agrupar por tipo de ativo
-        var alocacaoPorTipo = new Dictionary<string, decimal>();
+        var alocacaoPorTipo = new Dictionary<TipoAtivo, decimal>();
         decimal totalGeral = 0;
 
         foreach (var carteira in carteiras)

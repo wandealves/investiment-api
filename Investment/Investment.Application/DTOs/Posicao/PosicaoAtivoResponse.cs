@@ -1,3 +1,5 @@
+using Investment.Domain.Common;
+
 namespace Investment.Application.DTOs.Posicao;
 
 public class PosicaoAtivoResponse
@@ -5,7 +7,7 @@ public class PosicaoAtivoResponse
     public long AtivoId { get; set; }
     public string AtivoNome { get; set; } = default!;
     public string AtivoCodigo { get; set; } = default!;
-    public string AtivoTipo { get; set; } = default!;
+    public TipoAtivo AtivoTipo { get; set; }
 
     public decimal QuantidadeAtual { get; set; }
     public decimal PrecoMedio { get; set; }

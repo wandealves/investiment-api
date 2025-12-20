@@ -149,7 +149,7 @@ public class ImportacaoService : IImportacaoService
             {
                 Codigo = ticker,
                 Nome = ticker, // Nome provisório
-                Tipo = "Acao" // Tipo padrão
+                Tipo = TipoAtivo.Acao // Tipo padrão
             };
 
             await _ativoRepository.SalvarAsync(ativo);

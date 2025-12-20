@@ -220,7 +220,7 @@ public class PosicaoService : IPosicaoService
             AtivoId = ativo?.Id ?? 0,
             AtivoNome = ativo?.Nome ?? string.Empty,
             AtivoCodigo = ativo?.Codigo ?? string.Empty,
-            AtivoTipo = ativo?.Tipo ?? string.Empty,
+            AtivoTipo = ativo?.Tipo ?? TipoAtivo.Acao,
             QuantidadeAtual = quantidadeAtual,
             PrecoMedio = precoMedio,
             ValorInvestido = valorInvestido,

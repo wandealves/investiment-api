@@ -22,6 +22,7 @@ public class AtivoMapping: IEntityTypeConfiguration<Ativo>
 
         builder.Property(x => x.Tipo)
             .IsRequired()
+            .HasConversion<string>()
             .HasMaxLength(50);
 
         builder.Property(x => x.Descricao)
