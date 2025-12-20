@@ -24,7 +24,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 builder.Services.AddDbContext<InvestmentDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
-// Configurar autenticação JWT
+// Configurar autenticação JWT (com suporte a cookies httpOnly)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -39,20 +39,48 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]!))
         };
+
+        // Ler token do cookie httpOnly em vez do header Authorization
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // Primeiro tenta ler do cookie
+                if (context.Request.Cookies.TryGetValue("access_token", out var token))
+                {
+                    context.Token = token;
+                }
+                // Fallback: Mantém compatibilidade com header Authorization (para testes/Swagger)
+                else if (context.Request.Headers.ContainsKey("Authorization"))
+                {
+                    var authHeader = context.Request.Headers["Authorization"].ToString();
+                    if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        context.Token = authHeader.Substring("Bearer ".Length).Trim();
+                    }
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
 
-//// Configurar CORS
+// Configurar CORS com suporte a credentials (cookies)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
+    options.AddPolicy("AllowFrontend",
         policy =>
         {
+            // IMPORTANTE: Em produção, especificar origem exata
+            var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+                ?? new[] { "http://localhost:3000", "http://localhost:5173" }; // Vite default port
+
             policy
-                .AllowAnyOrigin()
+                .WithOrigins(allowedOrigins)
                 .AllowAnyMethod()
-                .AllowAnyHeader();
+                .AllowAnyHeader()
+                .AllowCredentials(); // CRÍTICO: Permite envio de cookies
         });
 });
 
@@ -102,7 +130,7 @@ app.MapScalarApiReference(options =>
 app.UseHttpsRedirection();
 
 // CORS deve vir antes de autenticação/autorização
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
 
 // Middleware de autenticação e autorização
 app.UseAuthentication();

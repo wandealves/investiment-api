@@ -12,8 +12,27 @@ public static class AuthEndpoint
             .WithName("Autenticação")
             .WithTags("Autenticação");
 
+        // Helper para criar CookieOptions baseado no ambiente
+        static CookieOptions GetCookieOptions(HttpContext context)
+        {
+            var isDevelopment = context.RequestServices
+                .GetRequiredService<IWebHostEnvironment>()
+                .IsDevelopment();
+
+            // Em desenvolvimento: Secure = false para permitir HTTP
+            // Em produção: Secure = true para exigir HTTPS
+            return new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = !isDevelopment,  // false em Development, true em Production
+                SameSite = SameSiteMode.Lax,  // Lax permite cookies em navegação cross-site
+                Expires = DateTimeOffset.UtcNow.AddHours(24),
+                Path = "/"
+            };
+        }
+
         // POST /api/v1/auth/register - Registro de novo usuário (público)
-        group.MapPost("/register", async (RegisterRequest request, IAuthService service) =>
+        group.MapPost("/register", async (RegisterRequest request, IAuthService service, HttpContext context) =>
         {
             var resultado = await service.RegisterAsync(request);
 
@@ -26,7 +45,14 @@ public static class AuthEndpoint
                 });
             }
 
-            return Results.Created($"/api/v1/usuarios/{resultado.Data!.Usuario.Id}", resultado.Data);
+            // Configurar cookie httpOnly com o token JWT
+            context.Response.Cookies.Append("access_token", resultado.Data!.Token, GetCookieOptions(context));
+
+            // Retornar apenas dados do usuário (sem token no body)
+            return Results.Created($"/api/v1/usuarios/{resultado.Data.Usuario.Id}", new
+            {
+                usuario = resultado.Data.Usuario
+            });
         })
         .WithName("Registrar Usuário")
         .WithDescription("Registra um novo usuário no sistema")
@@ -34,7 +60,7 @@ public static class AuthEndpoint
         .Produces<object>(StatusCodes.Status400BadRequest);
 
         // POST /api/v1/auth/login - Login de usuário (público)
-        group.MapPost("/login", async (LoginRequest request, IAuthService service) =>
+        group.MapPost("/login", async (LoginRequest request, IAuthService service, HttpContext context) =>
         {
             var resultado = await service.LoginAsync(request);
 
@@ -47,10 +73,17 @@ public static class AuthEndpoint
                 });
             }
 
-            return Results.Ok(resultado.Data);
+            // Configurar cookie httpOnly com o token JWT
+            context.Response.Cookies.Append("access_token", resultado.Data!.Token, GetCookieOptions(context));
+
+            // Retornar apenas dados do usuário (sem token no body)
+            return Results.Ok(new
+            {
+                usuario = resultado.Data.Usuario
+            });
         })
         .WithName("Login")
-        .WithDescription("Autentica um usuário e retorna um token JWT")
+        .WithDescription("Autentica um usuário e retorna um token JWT via cookie httpOnly")
         .Produces<object>(StatusCodes.Status200OK)
         .Produces<object>(StatusCodes.Status400BadRequest);
 
@@ -109,6 +142,18 @@ public static class AuthEndpoint
         .WithDescription("Retorna os dados do usuário autenticado")
         .Produces<object>(StatusCodes.Status200OK)
         .Produces<object>(StatusCodes.Status401Unauthorized);
+
+        // POST /api/v1/auth/logout - Logout (limpa cookie)
+        group.MapPost("/logout", (HttpContext context) =>
+        {
+            // Remover cookie do token (mesmas opções do cookie original)
+            context.Response.Cookies.Delete("access_token", GetCookieOptions(context));
+
+            return Results.Ok(new { message = "Logout realizado com sucesso" });
+        })
+        .WithName("Logout")
+        .WithDescription("Remove o cookie de autenticação")
+        .Produces<object>(StatusCodes.Status200OK);
     }
 }
 
