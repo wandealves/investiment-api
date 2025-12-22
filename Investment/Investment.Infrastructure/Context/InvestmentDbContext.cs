@@ -10,7 +10,8 @@ public class InvestmentDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<Ativo> Ativos { get; set; }
     public DbSet<CarteiraAtivo> CarteirasAtivos { get; set; }
     public DbSet<Transacao> Transacoes { get; set; }
-    
+    public DbSet<Cotacao> Cotacoes { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(InvestmentDbContext).Assembly);

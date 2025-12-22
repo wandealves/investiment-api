@@ -28,6 +28,18 @@ public class AtivoMapping: IEntityTypeConfiguration<Ativo>
         builder.Property(x => x.Descricao)
             .HasMaxLength(1000);
 
+        // Campos de cotação (cache)
+        builder.Property(x => x.PrecoAtual)
+            .HasPrecision(18, 2);
+
+        builder.Property(x => x.PrecoAtualizadoEm);
+
+        builder.Property(x => x.FonteCotacao)
+            .HasMaxLength(50);
+
         builder.HasIndex(x => x.Codigo).IsUnique();
+
+        builder.HasIndex(x => x.PrecoAtualizadoEm)
+            .HasDatabaseName("IX_Ativos_PrecoAtualizadoEm");
     }  
 }

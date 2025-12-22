@@ -1,7 +1,11 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Investment.Api.Endpoints;
+using Investment.Api.Infrastructure;
 using Investment.Application.Services;
+using Investment.Application.Services.Cotacao;
 using Investment.Infrastructure.Context;
 using Investment.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,6 +27,19 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.AddDbContext<InvestmentDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+// Configurar Hangfire
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UsePostgreSqlStorage(options => options.UseNpgsqlConnection(builder.Configuration.GetConnectionString("Default")!)));
+
+builder.Services.AddHangfireServer(options =>
+{
+    options.WorkerCount = 2; // 2 workers paralelos
+    options.ServerName = "InvestmentApi-CotacaoWorker";
+});
 
 // Configurar autenticação JWT (com suporte a cookies httpOnly)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -90,6 +107,7 @@ builder.Services.AddScoped<ICarteiraRepository, CarteiraRepository>();
 builder.Services.AddScoped<ICarteiraAtivoRepository, CarteiraAtivoRepository>();
 builder.Services.AddScoped<ITransacaoRepository, TransacaoRepository>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<ICotacaoRepository, CotacaoRepository>();
 
 // Registrar serviços
 builder.Services.AddScoped<IAtivoService, AtivoService>();
@@ -99,6 +117,14 @@ builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ICarteiraService, CarteiraService>();
 builder.Services.AddScoped<ITransacaoService, TransacaoService>();
 builder.Services.AddScoped<IPosicaoService, PosicaoService>();
+
+// Registrar serviços de cotação
+builder.Services.AddScoped<ICotacaoService, CotacaoService>();
+builder.Services.AddHttpClient<ICotacaoProviderStrategy, BrapiProvider>(client =>
+{
+    client.BaseAddress = new Uri("https://brapi.dev/api/");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
 // Registrar serviços de importação PDF
 builder.Services.AddScoped<Investment.Application.Services.PDF.IPdfParserStrategy, Investment.Application.Services.PDF.ClearPdfParser>();
@@ -136,6 +162,23 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Hangfire Dashboard
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new HangfireAuthorizationFilter() },
+    DashboardTitle = "Investment API - Cotações"
+});
+
+// Agendar job recorrente de atualização de cotações
+RecurringJob.AddOrUpdate<ICotacaoService>(
+    "atualizar-cotacoes",
+    service => service.AtualizarTodasCotacoesAsync(),
+    Cron.Daily(16, 20), // Todos os dias às 18:30
+    new RecurringJobOptions
+    {
+        TimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time") // Brasília
+    });
+
 // Registrar endpoints
 app.RegistrarAuthEndpoints();
 app.RegistrarUsuarioEndpoints();
@@ -146,5 +189,6 @@ app.RegistrarAtivoEndpoints();
 app.RegistrarImportacaoEndpoints();
 app.RegistrarRelatorioEndpoints();
 app.RegistrarDashboardEndpoints();
+app.RegistrarCotacaoEndpoints();
 
 app.Run();

@@ -10,7 +10,13 @@ public class Ativo
     public TipoAtivo Tipo { get; set; }
     public string? Descricao { get; set; }
 
+    // Cotação em cache (última atualização)
+    public decimal? PrecoAtual { get; set; }
+    public DateTimeOffset? PrecoAtualizadoEm { get; set; }
+    public string? FonteCotacao { get; set; }
+
     // Relacionamentos
     public ICollection<CarteiraAtivo> CarteirasAtivos { get; set; } = new List<CarteiraAtivo>();
     public ICollection<Transacao> Transacoes { get; set; } = new List<Transacao>();
+    public ICollection<Cotacao> Cotacoes { get; set; } = new List<Cotacao>();
 }

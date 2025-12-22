@@ -62,6 +62,11 @@ public class PosicaoService : IPosicaoService
 
         // Calcular totais
         var valorTotalInvestido = posicoes.Sum(p => p.ValorInvestido);
+        var valorTotalAtual = posicoes.Sum(p => p.ValorAtual ?? 0);
+        var lucroTotal = valorTotalAtual > 0 ? valorTotalAtual - valorTotalInvestido : (decimal?)null;
+        var rentabilidadeTotal = valorTotalInvestido > 0 && lucroTotal.HasValue
+            ? (lucroTotal.Value / valorTotalInvestido) * 100
+            : (decimal?)null;
 
         // Agrupar por tipo
         var distribuicao = AgruparPorTipo(posicoes, valorTotalInvestido);
@@ -73,9 +78,9 @@ public class PosicaoService : IPosicaoService
             DataCalculo = DateTimeOffset.UtcNow,
             Posicoes = posicoes,
             ValorTotalInvestido = valorTotalInvestido,
-            ValorTotalAtual = null, // Será implementado quando houver integração com API de cotações
-            LucroTotal = null,
-            RentabilidadeTotal = null,
+            ValorTotalAtual = valorTotalAtual > 0 ? valorTotalAtual : null,
+            LucroTotal = lucroTotal,
+            RentabilidadeTotal = rentabilidadeTotal,
             DistribuicaoPorTipo = distribuicao
         };
 
@@ -215,6 +220,14 @@ public class PosicaoService : IPosicaoService
 
         var valorInvestido = quantidadeAtual * precoMedio;
 
+        // Usar preço atual se disponível
+        var precoAtual = ativo?.PrecoAtual;
+        var valorAtual = precoAtual.HasValue ? quantidadeAtual * precoAtual.Value : (decimal?)null;
+        var lucro = valorAtual.HasValue ? valorAtual.Value - valorInvestido : (decimal?)null;
+        var rentabilidade = valorInvestido > 0 && lucro.HasValue
+            ? (lucro.Value / valorInvestido) * 100
+            : (decimal?)null;
+
         return new PosicaoAtivoResponse
         {
             AtivoId = ativo?.Id ?? 0,
@@ -224,10 +237,10 @@ public class PosicaoService : IPosicaoService
             QuantidadeAtual = quantidadeAtual,
             PrecoMedio = precoMedio,
             ValorInvestido = valorInvestido,
-            PrecoAtual = null,
-            ValorAtual = null,
-            Lucro = null,
-            Rentabilidade = null,
+            PrecoAtual = precoAtual,
+            ValorAtual = valorAtual,
+            Lucro = lucro,
+            Rentabilidade = rentabilidade,
             DividendosRecebidos = dividendosRecebidos,
             DataPrimeiraCompra = dataPrimeiraCompra,
             DataUltimaTransacao = dataUltimaTransacao
