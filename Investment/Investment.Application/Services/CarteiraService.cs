@@ -1,5 +1,6 @@
 using Gridify;
 using Investment.Application.DTOs.Carteira;
+using Investment.Application.DTOs.Posicao;
 using Investment.Application.Mappers;
 using Investment.Domain.Common;
 using Investment.Infrastructure.Repositories;
@@ -10,11 +11,19 @@ public class CarteiraService : ICarteiraService
 {
     private readonly ICarteiraRepository _carteiraRepository;
     private readonly IUsuarioRepository _usuarioRepository;
+    private readonly IPosicaoService _posicaoService;
+    private readonly ITransacaoRepository _transacaoRepository;
 
-    public CarteiraService(ICarteiraRepository carteiraRepository, IUsuarioRepository usuarioRepository)
+    public CarteiraService(
+        ICarteiraRepository carteiraRepository,
+        IUsuarioRepository usuarioRepository,
+        IPosicaoService posicaoService,
+        ITransacaoRepository transacaoRepository)
     {
         _carteiraRepository = carteiraRepository;
         _usuarioRepository = usuarioRepository;
+        _posicaoService = posicaoService;
+        _transacaoRepository = transacaoRepository;
     }
 
     public async Task<Result<Paging<CarteiraResponse>>> ObterAsync(GridifyQuery query, Guid usuarioId)
@@ -28,6 +37,48 @@ public class CarteiraService : ICarteiraService
         };
 
         return Result<Paging<CarteiraResponse>>.Success(responsePaging);
+    }
+
+    public async Task<Result<Paging<CarteiraComPosicaoResponse>>> ObterComPosicaoAsync(GridifyQuery query, Guid usuarioId)
+    {
+        var paging = await _carteiraRepository.ObterPorUsuarioAsync(query, usuarioId);
+
+        var carteirasComPosicao = new List<CarteiraComPosicaoResponse>();
+
+        foreach (var carteira in paging.Data)
+        {
+            // Calcular posição da carteira
+            var posicaoResult = await _posicaoService.CalcularPosicaoAsync(carteira.Id, usuarioId);
+
+            // Calcular rentabilidade baseada nas transações
+            var (lucroTotal, rentabilidadeTotal) = await CalcularRentabilidadeAsync(carteira.Id, posicaoResult);
+
+            var carteiraComPosicao = new CarteiraComPosicaoResponse
+            {
+                Id = carteira.Id,
+                UsuarioId = carteira.UsuarioId,
+                Nome = carteira.Nome,
+                Descricao = carteira.Descricao,
+                CriadaEm = carteira.CriadaEm,
+                TotalAtivos = carteira.CarteirasAtivos?.Count ?? 0,
+                TotalTransacoes = carteira.Transacoes?.Count ?? 0,
+                ValorTotal = posicaoResult.IsSuccess && posicaoResult.Data != null
+                    ? posicaoResult.Data.ValorTotalInvestido
+                    : 0,
+                LucroTotal = lucroTotal,
+                RentabilidadeTotal = rentabilidadeTotal
+            };
+
+            carteirasComPosicao.Add(carteiraComPosicao);
+        }
+
+        var responsePaging = new Paging<CarteiraComPosicaoResponse>
+        {
+            Count = paging.Count,
+            Data = carteirasComPosicao
+        };
+
+        return Result<Paging<CarteiraComPosicaoResponse>>.Success(responsePaging);
     }
 
     public async Task<Result<List<CarteiraResponse>>> ObterPorUsuarioAsync(Guid usuarioId)
@@ -155,6 +206,65 @@ public class CarteiraService : ICarteiraService
             // Se houver transações, o banco impedirá a exclusão (RESTRICT)
             return Result.Failure("Não é possível excluir a carteira pois ela possui transações associadas");
         }
+    }
+
+    private async Task<(decimal? lucroTotal, decimal? rentabilidadeTotal)> CalcularRentabilidadeAsync(
+        long carteiraId,
+        Result<PosicaoConsolidadaResponse> posicaoResult)
+    {
+        // Se não conseguiu calcular posição, retorna null
+        if (!posicaoResult.IsSuccess || posicaoResult.Data == null)
+        {
+            return (null, null);
+        }
+
+        // Buscar todas as transações da carteira
+        var transacoes = await _transacaoRepository.ObterPorCarteiraIdAsync(carteiraId);
+
+        if (!transacoes.Any())
+        {
+            return (0, 0);
+        }
+
+        decimal totalInvestido = 0;     // Total gasto em compras
+        decimal totalRecebidoVendas = 0; // Total recebido em vendas
+        decimal totalProventos = 0;      // Total recebido em dividendos e JCP
+
+        foreach (var transacao in transacoes)
+        {
+            switch (transacao.TipoTransacao)
+            {
+                case TipoTransacao.Compra:
+                    totalInvestido += transacao.Quantidade * transacao.Preco;
+                    break;
+
+                case TipoTransacao.Venda:
+                    totalRecebidoVendas += Math.Abs(transacao.Quantidade) * transacao.Preco;
+                    break;
+
+                case TipoTransacao.Dividendo:
+                case TipoTransacao.JCP:
+                    totalProventos += transacao.Preco * Math.Abs(transacao.Quantidade);
+                    break;
+
+                // Bonus, Split e Grupamento não afetam o cálculo de rentabilidade monetária
+            }
+        }
+
+        // Valor atual da carteira (posições em aberto)
+        var valorAtualCarteira = posicaoResult.Data.ValorTotalInvestido;
+
+        // Cálculo do lucro total:
+        // Lucro = (Valor Atual + Total Vendido + Proventos) - Total Investido
+        var lucroTotal = (valorAtualCarteira + totalRecebidoVendas + totalProventos) - totalInvestido;
+
+        // Cálculo da rentabilidade percentual:
+        // Rentabilidade = (Lucro / Total Investido) * 100
+        decimal? rentabilidadeTotal = totalInvestido > 0
+            ? (lucroTotal / totalInvestido) * 100
+            : null;
+
+        return (lucroTotal, rentabilidadeTotal);
     }
 
     private Dictionary<string, List<string>> ValidarRequest(CarteiraRequest request)

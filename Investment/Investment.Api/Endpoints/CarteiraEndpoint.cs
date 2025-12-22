@@ -13,11 +13,11 @@ public static class CarteiraEndpoint
             .WithTags("Carteiras")
             .RequireAuthorization();
 
-        // GET /api/v1/carteiras - Listar carteiras do usuário com paginação e filtros
+        // GET /api/v1/carteiras - Listar carteiras do usuário com paginação e filtros (com informações de posição)
         group.MapGet("", async ([AsParameters] GridifyQuery query, HttpContext context, ICarteiraService service) =>
         {
             var usuarioId = context.GetUsuarioId();
-            var resultado = await service.ObterAsync(query, usuarioId);
+            var resultado = await service.ObterComPosicaoAsync(query, usuarioId);
 
             if (!resultado.IsSuccess)
             {
@@ -30,8 +30,8 @@ public static class CarteiraEndpoint
 
             return Results.Ok(resultado.Data);
         })
-        .WithName("Listar Carteiras")
-        .WithDescription("Lista todas as carteiras do usuário autenticado com suporte a paginação e filtros (Gridify)")
+        .WithName("Listar Carteiras com Posição")
+        .WithDescription("Lista todas as carteiras do usuário autenticado com informações de valor investido e rentabilidade, com suporte a paginação e filtros (Gridify)")
         .Produces<object>(StatusCodes.Status200OK)
         .Produces<object>(StatusCodes.Status400BadRequest)
         .Produces<object>(StatusCodes.Status401Unauthorized);
