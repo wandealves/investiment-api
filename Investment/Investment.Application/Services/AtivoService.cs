@@ -6,18 +6,11 @@ using Investment.Infrastructure.Repositories;
 
 namespace Investment.Application.Services;
 
-public class AtivoService : IAtivoService
+public class AtivoService(IAtivoRepository ativoRepository) : IAtivoService
 {
-    private readonly IAtivoRepository _ativoRepository;
-
-    public AtivoService(IAtivoRepository ativoRepository)
-    {
-        _ativoRepository = ativoRepository;
-    }
-
     public async Task<Result<AtivoResponse>> ObterPorIdAsync(long id)
     {
-        var ativo = await _ativoRepository.ObterPorIdAsync(id);
+        var ativo = await ativoRepository.ObterPorIdAsync(id);
 
         if (ativo == null)
         {
@@ -35,7 +28,7 @@ public class AtivoService : IAtivoService
             return Result<AtivoResponse>.Failure("Código é obrigatório");
         }
 
-        var ativo = await _ativoRepository.ObterPorCodigoAsync(codigo);
+        var ativo = await ativoRepository.ObterPorCodigoAsync(codigo);
 
         if (ativo == null)
         {
@@ -48,7 +41,7 @@ public class AtivoService : IAtivoService
 
     public async Task<Result<List<AtivoResponse>>> ObterTodosAsync()
     {
-        var ativos = await _ativoRepository.ObterTodosAsync();
+        var ativos = await ativoRepository.ObterTodosAsync();
         var responses = AtivoMapper.ToResponseList(ativos);
         return Result<List<AtivoResponse>>.Success(responses);
     }
@@ -60,14 +53,14 @@ public class AtivoService : IAtivoService
             return Result<List<AtivoResponse>>.Failure("Termo de busca é obrigatório");
         }
 
-        var ativos = await _ativoRepository.BuscarAsync(termo);
+        var ativos = await ativoRepository.BuscarAsync(termo);
         var responses = AtivoMapper.ToResponseList(ativos);
         return Result<List<AtivoResponse>>.Success(responses);
     }
 
     public async Task<Result<Paging<AtivoResponse>>> ObterAsync(GridifyQuery query)
     {
-        var paging = await _ativoRepository.ObterAsync(query);
+        var paging = await ativoRepository.ObterAsync(query);
 
         var responsePaging = new Paging<AtivoResponse>
         {
@@ -85,8 +78,8 @@ public class AtivoService : IAtivoService
         {
             return Result<AtivoResponse>.Failure(validationErrors);
         }
-        
-        var codigoExiste = await _ativoRepository.ExistePorCodigoAsync(request.Codigo);
+
+        var codigoExiste = await ativoRepository.ExistePorCodigoAsync(request.Codigo);
         if (codigoExiste)
         {
             var errors = new Dictionary<string, List<string>>
@@ -95,9 +88,9 @@ public class AtivoService : IAtivoService
             };
             return Result<AtivoResponse>.Failure(errors);
         }
-        
+
         var ativo = AtivoMapper.ToEntity(request);
-        var ativoSalvo = await _ativoRepository.SalvarAsync(ativo);
+        var ativoSalvo = await ativoRepository.SalvarAsync(ativo);
         var response = AtivoMapper.ToResponse(ativoSalvo);
         return Result<AtivoResponse>.Success(response);
     }
@@ -109,12 +102,12 @@ public class AtivoService : IAtivoService
         {
             return Result<AtivoResponse>.Failure(validationErrors);
         }
-        var ativoExistente = await _ativoRepository.ObterPorIdAsync(id);
+        var ativoExistente = await ativoRepository.ObterPorIdAsync(id);
         if (ativoExistente == null)
         {
             return Result<AtivoResponse>.Failure($"Ativo com ID {id} não encontrado");
         }
-        var codigoExiste = await _ativoRepository.ExistePorCodigoAsync(request.Codigo, id);
+        var codigoExiste = await ativoRepository.ExistePorCodigoAsync(request.Codigo, id);
         if (codigoExiste)
         {
             var errors = new Dictionary<string, List<string>>
@@ -124,26 +117,26 @@ public class AtivoService : IAtivoService
             return Result<AtivoResponse>.Failure(errors);
         }
         AtivoMapper.UpdateEntity(ativoExistente, request);
-        var ativoAtualizado = await _ativoRepository.AtualizarAsync(ativoExistente);
+        var ativoAtualizado = await ativoRepository.AtualizarAsync(ativoExistente);
         var response = AtivoMapper.ToResponse(ativoAtualizado);
         return Result<AtivoResponse>.Success(response);
     }
 
     public async Task<Result> ExcluirAsync(long id)
     {
-        var ativoExistente = await _ativoRepository.ObterPorIdAsync(id);
+        var ativoExistente = await ativoRepository.ObterPorIdAsync(id);
         if (ativoExistente == null)
         {
             return Result.Failure($"Ativo com ID {id} não encontrado");
         }
-        var excluido = await _ativoRepository.ExcluirAsync(id);
+        var excluido = await ativoRepository.ExcluirAsync(id);
         if (!excluido)
         {
             return Result.Failure("Erro ao excluir o ativo");
         }
         return Result.Success();
     }
-    
+
     private Dictionary<string, List<string>> ValidarRequest(AtivoRequest request)
     {
         var errors = new Dictionary<string, List<string>>();

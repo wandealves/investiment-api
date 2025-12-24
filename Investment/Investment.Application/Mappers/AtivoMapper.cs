@@ -15,7 +15,7 @@ public static class AtivoMapper
             Descricao = request.Descricao
         };
     }
-    
+
     public static AtivoResponse ToResponse(Ativo ativo)
     {
         return new AtivoResponse
@@ -27,12 +27,17 @@ public static class AtivoMapper
             Descricao = ativo.Descricao
         };
     }
-    
+
+    public static LookupResponse ToLookupResponse(Ativo ativo)
+    {
+        return new LookupResponse(ativo.Id, ativo.Codigo, ativo.Nome);
+    }
+
     public static List<AtivoResponse> ToResponseList(List<Ativo> ativos)
     {
         return ativos.Select(ToResponse).ToList();
     }
-    
+
     public static void UpdateEntity(Ativo ativo, AtivoRequest request)
     {
         ativo.Nome = request.Nome;
