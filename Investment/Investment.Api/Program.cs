@@ -1,5 +1,3 @@
-using System.Text;
-using System.Text.Json.Serialization;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Investment.Api.Endpoints;
@@ -12,6 +10,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -173,7 +173,7 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 RecurringJob.AddOrUpdate<ICotacaoService>(
     "atualizar-cotacoes",
     service => service.AtualizarTodasCotacoesAsync(),
-    Cron.Daily(16, 20), // Todos os dias às 18:30
+    Cron.Daily(14, 10), // Todos os dias às 18:30
     new RecurringJobOptions
     {
         TimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time") // Brasília
