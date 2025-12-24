@@ -1,6 +1,7 @@
 using Investment.Application.DTOs.Dashboard;
 using Investment.Domain.Common;
 using Investment.Infrastructure.Repositories;
+using Investment.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace Investment.Application.Services;
@@ -11,17 +12,20 @@ public class DashboardService : IDashboardService
     private readonly IPosicaoService _posicaoService;
     private readonly ITransacaoRepository _transacaoRepository;
     private readonly IProventoRepository _proventoRepository;
+    private readonly InvestmentDbContext _context;
 
     public DashboardService(
         ICarteiraRepository carteiraRepository,
         IPosicaoService posicaoService,
         ITransacaoRepository transacaoRepository,
-        IProventoRepository proventoRepository)
+        IProventoRepository proventoRepository,
+        InvestmentDbContext context)
     {
         _carteiraRepository = carteiraRepository;
         _posicaoService = posicaoService;
         _transacaoRepository = transacaoRepository;
         _proventoRepository = proventoRepository;
+        _context = context;
     }
 
     public async Task<Result<DashboardMetricsResponse>> ObterMetricasAsync(Guid usuarioId)
@@ -284,18 +288,18 @@ public class DashboardService : IDashboardService
 
         var idsCarteiras = carteiras.Select(c => c.Id).ToList();
 
-        // Obter todos os proventos
-        var todosProventos = await _proventoRepository.ObterTodosAsync();
-
-        // Filtrar proventos dos ativos das carteiras do usuário
-        var transacoes = await _transacaoRepository.ObterTodosAsync();
-        var idsAtivosUsuario = transacoes
+        // Obter IDs dos ativos das carteiras do usuário
+        var idsAtivosUsuario = await _context.Transacoes
+            .AsNoTracking()
             .Where(t => idsCarteiras.Contains(t.CarteiraId))
             .Select(t => t.AtivoId)
             .Distinct()
-            .ToList();
+            .ToListAsync();
 
-        var proventosRecentes = todosProventos
+        // Obter proventos recentes com Include para carregar Ativo
+        var proventosRecentes = await _context.Proventos
+            .AsNoTracking()
+            .Include(p => p.Ativo)
             .Where(p => idsAtivosUsuario.Contains(p.AtivoId))
             .OrderByDescending(p => p.DataPagamento)
             .Take(quantidade)
@@ -309,7 +313,7 @@ public class DashboardService : IDashboardService
                 DataPagamento = p.DataPagamento,
                 Status = p.Status.ToString()
             })
-            .ToList();
+            .ToListAsync();
 
         return Result<List<ProventoRecenteResponse>>.Success(proventosRecentes);
     }
@@ -324,9 +328,12 @@ public class DashboardService : IDashboardService
         }
 
         var idsCarteiras = carteiras.Select(c => c.Id).ToList();
-        var todasTransacoes = await _transacaoRepository.ObterTodosAsync();
 
-        var ultimasTransacoes = todasTransacoes
+        // Usar DbContext diretamente com Include para carregar navigation properties
+        var ultimasTransacoes = await _context.Transacoes
+            .AsNoTracking()
+            .Include(t => t.Ativo)
+            .Include(t => t.Carteira)
             .Where(t => idsCarteiras.Contains(t.CarteiraId))
             .OrderByDescending(t => t.DataTransacao)
             .Take(quantidade)
@@ -341,7 +348,7 @@ public class DashboardService : IDashboardService
                 ValorTotal = t.Quantidade * t.Preco,
                 DataTransacao = t.DataTransacao
             })
-            .ToList();
+            .ToListAsync();
 
         return Result<List<UltimaTransacaoResponse>>.Success(ultimasTransacoes);
     }
