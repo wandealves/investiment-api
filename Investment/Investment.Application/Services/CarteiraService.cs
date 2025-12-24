@@ -107,6 +107,46 @@ public class CarteiraService : ICarteiraService
         return Result<CarteiraResponse>.Success(response);
     }
 
+    public async Task<Result<CarteiraComPosicaoResponse>> ObterComPosicaoPorIdAsync(long id, Guid usuarioId)
+    {
+        // Verificar se a carteira pertence ao usuário
+        var pertenceAoUsuario = await _carteiraRepository.UsuarioPossuiCarteiraAsync(usuarioId, id);
+        if (!pertenceAoUsuario)
+        {
+            return Result<CarteiraComPosicaoResponse>.Failure("Acesso negado: esta carteira não pertence ao usuário autenticado");
+        }
+
+        var carteira = await _carteiraRepository.ObterPorIdAsync(id);
+        if (carteira == null)
+        {
+            return Result<CarteiraComPosicaoResponse>.Failure($"Carteira com ID {id} não encontrada");
+        }
+
+        // Calcular posição da carteira
+        var posicaoResult = await _posicaoService.CalcularPosicaoAsync(carteira.Id, usuarioId);
+
+        // Calcular rentabilidade baseada nas transações
+        var (lucroTotal, rentabilidadeTotal) = await CalcularRentabilidadeAsync(carteira.Id, posicaoResult);
+
+        var response = new CarteiraComPosicaoResponse
+        {
+            Id = carteira.Id,
+            UsuarioId = carteira.UsuarioId,
+            Nome = carteira.Nome,
+            Descricao = carteira.Descricao,
+            CriadaEm = carteira.CriadaEm,
+            TotalAtivos = carteira.CarteirasAtivos?.Count ?? 0,
+            TotalTransacoes = carteira.Transacoes?.Count ?? 0,
+            ValorTotal = posicaoResult.IsSuccess && posicaoResult.Data != null
+                ? posicaoResult.Data.ValorTotalInvestido
+                : 0,
+            LucroTotal = lucroTotal,
+            RentabilidadeTotal = rentabilidadeTotal
+        };
+
+        return Result<CarteiraComPosicaoResponse>.Success(response);
+    }
+
     public async Task<Result<CarteiraComDetalhesResponse>> ObterComDetalhesAsync(long id, Guid usuarioId)
     {
         // Verificar ownership

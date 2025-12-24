@@ -35,7 +35,7 @@ public class TransacaoRepository(InvestmentDbContext context) : ITransacaoReposi
     {
         if (transacao == null)
             throw new ArgumentNullException(nameof(transacao));
-        
+
         var transacaoExistente = await context.Transacoes
             .AsNoTracking()
             .FirstOrDefaultAsync(t => t.Id == transacao.Id)
@@ -43,14 +43,14 @@ public class TransacaoRepository(InvestmentDbContext context) : ITransacaoReposi
 
         if (transacaoExistente == null)
             throw new InvalidOperationException($"Transação com ID '{transacao.Id}' não encontrada.");
-        
+
         var carteiraExiste = await context.Carteiras
             .AnyAsync(c => c.Id == transacao.CarteiraId)
             .ConfigureAwait(false);
 
         if (!carteiraExiste)
             throw new InvalidOperationException($"Carteira com ID '{transacao.CarteiraId}' não encontrada.");
-        
+
         var ativoExiste = await context.Ativos
             .AnyAsync(a => a.Id == transacao.AtivoId)
             .ConfigureAwait(false);
@@ -99,6 +99,7 @@ public class TransacaoRepository(InvestmentDbContext context) : ITransacaoReposi
             .AsNoTracking()
             .Where(t => t.CarteiraId == carteiraId)
             .OrderByDescending(t => t.DataTransacao)
+            .Include(t => t.Ativo)
             .ToListAsync()
             .ConfigureAwait(false);
     }

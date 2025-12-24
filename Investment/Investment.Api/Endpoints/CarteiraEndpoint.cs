@@ -36,11 +36,11 @@ public static class CarteiraEndpoint
         .Produces<object>(StatusCodes.Status400BadRequest)
         .Produces<object>(StatusCodes.Status401Unauthorized);
 
-        // GET /api/v1/carteiras/{id} - Obter carteira por ID
+        // GET /api/v1/carteiras/{id} - Obter carteira por ID com informações de posição
         group.MapGet("/{id:long}", async (long id, HttpContext context, ICarteiraService service) =>
         {
             var usuarioId = context.GetUsuarioId();
-            var resultado = await service.ObterPorIdAsync(id, usuarioId);
+            var resultado = await service.ObterComPosicaoPorIdAsync(id, usuarioId);
 
             if (!resultado.IsSuccess)
             {
@@ -54,7 +54,7 @@ public static class CarteiraEndpoint
             return Results.Ok(resultado.Data);
         })
         .WithName("Obter Carteira por ID")
-        .WithDescription("Obtém uma carteira específica do usuário")
+        .WithDescription("Obtém uma carteira específica do usuário com informações de valor total e rentabilidade")
         .Produces<object>(StatusCodes.Status200OK)
         .Produces<object>(StatusCodes.Status404NotFound)
         .Produces<object>(StatusCodes.Status401Unauthorized);
