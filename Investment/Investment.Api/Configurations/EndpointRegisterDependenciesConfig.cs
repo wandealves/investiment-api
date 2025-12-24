@@ -16,6 +16,7 @@ public static class EndpointRegisterDependenciesConfig
         app.RegistrarDashboardEndpoints();
         app.RegistrarCotacaoEndpoints();
         app.RegistrarLookupEndpoints();
+        app.RegistrarProventoEndpoints();
     }
 }
 

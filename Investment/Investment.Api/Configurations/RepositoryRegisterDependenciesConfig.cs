@@ -11,6 +11,7 @@ public static class RepositoryRegisterDependenciesConfig
         services.AddScoped<ITransacaoRepository, TransacaoRepository>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<ICotacaoRepository, CotacaoRepository>();
+        services.AddScoped<IProventoRepository, ProventoRepository>();
     }
 }
 

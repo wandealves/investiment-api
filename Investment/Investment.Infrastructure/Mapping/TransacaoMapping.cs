@@ -37,6 +37,12 @@ public class TransacaoMapping: IEntityTypeConfiguration<Transacao>
             .HasForeignKey(x => x.AtivoId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(x => x.Provento)
+            .WithMany(x => x.Transacoes)
+            .HasForeignKey(x => x.ProventoId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(x => new { x.CarteiraId, x.AtivoId, x.DataTransacao });
+        builder.HasIndex(x => x.ProventoId);
     }
 }

@@ -11,6 +11,7 @@ public class InvestmentDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<CarteiraAtivo> CarteirasAtivos { get; set; }
     public DbSet<Transacao> Transacoes { get; set; }
     public DbSet<Cotacao> Cotacoes { get; set; }
+    public DbSet<Provento> Proventos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

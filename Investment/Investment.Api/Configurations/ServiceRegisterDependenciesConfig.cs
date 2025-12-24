@@ -15,6 +15,7 @@ public static class ServiceRegisterDependenciesConfig
         services.AddScoped<ITransacaoService, TransacaoService>();
         services.AddScoped<IPosicaoService, PosicaoService>();
         services.AddScoped<ILookupService, LookupService>();
+        services.AddScoped<IProventoService, ProventoService>();
 
 
         // Registrar serviços de cotação
