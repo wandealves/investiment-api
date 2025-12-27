@@ -19,6 +19,7 @@ public interface ITransacaoRepository
     Task<List<Transacao>> ObterPorCarteiraTipoEPeriodoAsync(long carteiraId, string tipoTransacao, DateTime inicio, DateTime fim);
     Task<Transacao?> ObterComDetalhesAsync(Guid id);
     Task<List<Transacao>> ObterUltimasTransacoesAsync(long carteiraId, int quantidade);
+    Task<List<Transacao>> ObterPorCarteiraEAnoAsync(long carteiraId, int ano);
     Task<decimal> CalcularTotalInvestidoPorAtivoAsync(long carteiraId, long ativoId);
     Task<Transacao> SalvarAsync(Transacao transacao);
     Task<Transacao> AtualizarAsync(Transacao transacao);

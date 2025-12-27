@@ -104,6 +104,17 @@ public class TransacaoRepository(InvestmentDbContext context) : ITransacaoReposi
             .ConfigureAwait(false);
     }
 
+    public async Task<List<Transacao>> ObterPorCarteiraEAnoAsync(long carteiraId, int ano)
+    {
+        return await context.Transacoes
+            .AsNoTracking()
+            .Where(t => t.CarteiraId == carteiraId && t.DataTransacao.Year == ano && t.TipoTransacao == "Compra")
+            .OrderByDescending(t => t.DataTransacao)
+            .Include(t => t.Ativo)
+            .ToListAsync()
+            .ConfigureAwait(false);
+    }
+
     public async Task<Paging<Transacao>> ObterPorCarteiraAsync(long carteiraId, GridifyQuery query)
     {
         if (query == null)

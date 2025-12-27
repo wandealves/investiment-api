@@ -38,172 +38,110 @@ public class ImpostoRendaService : IImpostoRendaService
         var transacoes = new List<Transacao>();
         foreach (var carteiraId in carteiraIds)
         {
-            var trans = await _transacaoRepository.ObterPorCarteiraIdAsync(carteiraId);
+            var trans = await _transacaoRepository.ObterPorCarteiraEAnoAsync(carteiraId, ano != null ? ano.Value : DateTime.Now.Year);
             transacoes.AddRange(trans);
-        }
-
-        if (ano.HasValue)
-        {
-            transacoes = transacoes
-                .Where(t => t.DataTransacao.Year == ano.Value)
-                .ToList();
         }
 
         if (!transacoes.Any())
             return Result<CalculoIRResponse>.Failure($"Não há transações para {(ano.HasValue ? $"o ano {ano.Value}" : "calcular")}");
 
-        // 3. Agrupar por ativo
-        var transacoesPorAtivo = transacoes
-            .GroupBy(t => t.AtivoId)
-            .ToList();
-
         var itensCalculo = new List<ItemCalculoIR>();
-
-        // 4. Para cada ativo, calcular
-        foreach (var grupo in transacoesPorAtivo)
+        foreach (var transanao in transacoes)
         {
-            var ativoId = grupo.Key;
-            var transacoesAtivo = grupo.OrderBy(t => t.DataTransacao).ToList();
-            var ativo = transacoesAtivo.First().Ativo;
+            var totalAtivo = transanao.Preco * transanao.Quantidade;
 
-            // 4.1. Separar compras por mês para rateio de taxas
-            var comprasPorMes = transacoesAtivo
-                .Where(t => t.TipoTransacao == TipoTransacao.Compra)
-                .GroupBy(t => new { t.DataTransacao.Year, t.DataTransacao.Month })
-                .ToList();
-
-            // 4.2. Aplicar rateio de taxas conforme @regras.md
-            var comprasComRateio = new List<(Transacao Transacao, decimal TaxaRateada)>();
-
-            foreach (var mesGrupo in comprasPorMes)
-            {
-                var comprasMes = mesGrupo.ToList();
-
-                // Total do mês = Σ (Preço × Quantidade)
-                var totalMes = comprasMes.Sum(c => c.Preco * c.Quantidade);
-
-                // Total de taxas do mês = Σ Taxas
-                var totalTaxasMes = comprasMes.Sum(c => c.Taxa);
-
-                foreach (var compra in comprasMes)
-                {
-                    // Total do ativo
-                    var totalAtivo = compra.Preco * compra.Quantidade;
-
-                    // % do Ativo = Total do Ativo / Total do Mês
-                    var percentualAtivo = totalMes > 0 ? totalAtivo / totalMes : 0;
-
-                    // Taxa de Rateio = % do Ativo × Total de Taxas
-                    var taxaRateada = percentualAtivo * totalTaxasMes;
-
-                    comprasComRateio.Add((compra, taxaRateada));
-                }
-            }
-
-            // 4.3. Calcular WAC (Weighted Average Cost) com taxas rateadas
-            decimal quantidadeAtual = 0;
-            decimal precoMedio = 0;
-            decimal totalTaxasRateadas = 0;
-
-            foreach (var (transacao, taxaRateada) in comprasComRateio.OrderBy(c => c.Transacao.DataTransacao))
-            {
-                var precoComTaxa = transacao.Preco + (taxaRateada / transacao.Quantidade);
-
-                if (quantidadeAtual + transacao.Quantidade > 0)
-                {
-                    precoMedio = ((quantidadeAtual * precoMedio) + (transacao.Quantidade * precoComTaxa))
-                               / (quantidadeAtual + transacao.Quantidade);
-                }
-                else
-                {
-                    precoMedio = precoComTaxa;
-                }
-
-                quantidadeAtual += transacao.Quantidade;
-                totalTaxasRateadas += taxaRateada;
-            }
-
-            // 4.4. Processar vendas para calcular ganho de capital
-            var vendas = transacoesAtivo.Where(t => t.TipoTransacao == TipoTransacao.Venda).ToList();
-            decimal ganhoCapital = 0;
-
-            foreach (var venda in vendas)
-            {
-                var quantidadeVendida = Math.Abs(venda.Quantidade);
-                var precoVenda = venda.Preco;
-
-                // Ganho de Capital = (Preço Venda - Preço Médio) × Quantidade
-                ganhoCapital += (precoVenda - precoMedio) * quantidadeVendida;
-
-                // Atualizar quantidade
-                quantidadeAtual -= quantidadeVendida;
-            }
-
-            // 4.5. Buscar cotação atual via BRAPI
-            decimal? precoAtual = null;
-            try
-            {
-                precoAtual = await _cotacaoService.ObterPrecoAtualAsync(ativoId);
-            }
-            catch
-            {
-                // Ignora erro de cotação - continua sem preço atual
-            }
-
-            // 4.6. Calcular IR devido
-            var (irDevido, aliquota) = CalcularIRDevido(ativo.Tipo, ganhoCapital, vendas);
-
-            // 4.7. Criar item de cálculo
-            var totalInvestido = quantidadeAtual * precoMedio;
-            var valorAtual = precoAtual.HasValue ? quantidadeAtual * precoAtual.Value : (decimal?)null;
-            var rendimento = valorAtual.HasValue ? valorAtual.Value - totalInvestido : (decimal?)null;
-
-            var itemCalculo = new ItemCalculoIR
+            itensCalculo.Add(new ItemCalculoIR
             {
                 Id = Guid.NewGuid(),
-                AtivoId = ativoId,
-                Quantidade = quantidadeAtual,
-                TotalInvestido = totalInvestido,
-                PrecoMedio = precoMedio,
-                PrecoAtual = precoAtual,
-                Rendimento = rendimento,
-                TaxasRateadas = totalTaxasRateadas,
-                GanhoCapital = ganhoCapital,
-                IRDevido = irDevido,
-                AliquotaIR = aliquota
-                // Ativo será carregado pelo EF Core via Include, não definir aqui
-            };
-
-            itensCalculo.Add(itemCalculo);
+                AtivoId = transanao.AtivoId,
+                Quantidade = transanao.Quantidade,
+                TotalInvestido = totalAtivo,
+                PrecoAtual = transanao.Preco,
+                PrecoMedio = 0,
+                Rendimento = null,
+                GanhoCapital = 0,
+                IRDevido = 0,
+                AliquotaIR = 0
+            });
+        }
+        var totalTaxa = transacoes.First().Taxa;
+        var totalInvestido = itensCalculo.Sum(i => i.TotalInvestido);
+        foreach (var itemCalculoIR in itensCalculo)
+        {
+            var porcetagem = itemCalculoIR.TotalInvestido / totalInvestido;
+            var taxaRateada = porcetagem * totalTaxa;
+            itemCalculoIR.TaxasRateadas = taxaRateada;
+            itemCalculoIR.TotalInvestido = itemCalculoIR.TotalInvestido + taxaRateada;
         }
 
-        // 5. Criar CalculoIR
+        // Calcular totais consolidados
+        var valorTotalInvestido = itensCalculo.Sum(i => i.TotalInvestido);
+        var totalTaxasRateadas = itensCalculo.Sum(i => i.TaxasRateadas);
+        var totalGanhoCapital = itensCalculo.Sum(i => i.GanhoCapital);
+        var totalIRDevido = itensCalculo.Sum(i => i.IRDevido);
+
+        // Verificar se já existe cálculo para este usuário e ano
+        var calculoExistente = await _calculoIRRepository.ObterUltimoPorUsuarioEAnoAsync(usuarioId, ano);
+
+        if (calculoExistente != null)
+        {
+            // Excluir cálculo antigo para fazer atualização
+            await _calculoIRRepository.ExcluirAsync(calculoExistente.Id);
+        }
+
+        // Criar novo cálculo
         var calculoIR = new CalculoIR
         {
             Id = Guid.NewGuid(),
             UsuarioId = usuarioId,
             Ano = ano,
             DataCalculo = DateTimeOffset.UtcNow,
-            ValorTotalInvestido = itensCalculo.Sum(i => i.TotalInvestido),
-            ValorTotalAtual = itensCalculo.Any(i => i.PrecoAtual.HasValue)
-                ? itensCalculo.Sum(i => i.PrecoAtual.HasValue ? i.Quantidade * i.PrecoAtual.Value : 0)
-                : null,
-            TotalTaxasRateadas = itensCalculo.Sum(i => i.TaxasRateadas),
-            TotalGanhoCapital = itensCalculo.Sum(i => i.GanhoCapital),
-            TotalIRDevido = itensCalculo.Sum(i => i.IRDevido),
+            ValorTotalInvestido = valorTotalInvestido,
+            ValorTotalAtual = null,
+            TotalTaxasRateadas = totalTaxasRateadas,
+            TotalGanhoCapital = totalGanhoCapital,
+            TotalIRDevido = totalIRDevido,
             Itens = itensCalculo
         };
 
-        // 6. Salvar no banco
+        // Salvar no banco
         await _calculoIRRepository.SalvarAsync(calculoIR);
 
-        // 7. Recarregar do banco com propriedades de navegação
+        // Recarregar do banco com propriedades de navegação (Ativo)
         var calculoSalvo = await _calculoIRRepository.ObterPorIdAsync(calculoIR.Id);
         if (calculoSalvo == null)
             return Result<CalculoIRResponse>.Failure("Erro ao salvar cálculo de IR");
 
-        // 8. Mapear para DTO com histórico de compras
-        var response = MapearParaResponse(calculoSalvo, transacoes);
+        // Mapear para DTO
+        var itens = calculoSalvo.Itens.Select(i => new ItemCalculoIRResponse
+        {
+            AtivoId = i.AtivoId,
+            AtivoNome = i.Ativo.Nome,
+            AtivoCodigo = i.Ativo.Codigo,
+            AtivoTipo = i.Ativo.Tipo,
+            Quantidade = i.Quantidade,
+            TotalInvestido = i.TotalInvestido,
+            PrecoMedio = i.PrecoMedio,
+            PrecoAtual = i.PrecoAtual,
+            Rendimento = i.Rendimento,
+            TaxasRateadas = i.TaxasRateadas,
+            GanhoCapital = i.GanhoCapital,
+            IRDevido = i.IRDevido,
+            AliquotaIR = i.AliquotaIR,
+            HistoricoCompras = new List<HistoricoCompraResponse>()
+        }).ToList();
+        var response = new CalculoIRResponse
+        {
+            Id = calculoSalvo.Id,
+            Ano = calculoSalvo.Ano,
+            DataCalculo = calculoSalvo.DataCalculo,
+            ValorTotalInvestido = calculoSalvo.ValorTotalInvestido,
+            ValorTotalAtual = calculoSalvo.ValorTotalAtual,
+            TotalTaxasRateadas = calculoSalvo.TotalTaxasRateadas,
+            TotalGanhoCapital = calculoSalvo.TotalGanhoCapital,
+            TotalIRDevido = calculoSalvo.TotalIRDevido,
+            Itens = itens
+        };
 
         return Result<CalculoIRResponse>.Success(response);
     }
@@ -263,7 +201,7 @@ public class ImpostoRendaService : IImpostoRendaService
                 .OrderBy(t => t.DataTransacao)
                 .ToList();
 
-            // Calcular rateio para o histórico (mesmo algoritmo)
+            // Calcular rateio para o histórico (mesmo algoritmo conforme @regras.md)
             var comprasPorMes = comprasAtivo
                 .GroupBy(t => new { t.DataTransacao.Year, t.DataTransacao.Month })
                 .ToList();
@@ -272,15 +210,26 @@ public class ImpostoRendaService : IImpostoRendaService
 
             foreach (var mesGrupo in comprasPorMes)
             {
-                var comprasMes = mesGrupo.ToList();
+                var comprasMes = mesGrupo.OrderBy(t => t.DataTransacao).ToList();
+
+                // Total investido sem taxas
                 var totalMes = comprasMes.Sum(c => c.Preco * c.Quantidade);
-                var totalTaxasMes = comprasMes.Sum(c => c.Taxa);
+
+                // Taxa da PRIMEIRA transação do mês (conforme @regras.md)
+                var totalTaxasMes = comprasMes.First().Taxa;
 
                 foreach (var compra in comprasMes)
                 {
+                    // Total do ativo = Quantidade × Preço
                     var totalAtivo = compra.Preco * compra.Quantidade;
+
+                    // % do Ativo = Total do Ativo / Total investido (sem taxas)
                     var percentualAtivo = totalMes > 0 ? totalAtivo / totalMes : 0;
+
+                    // Taxa de Rateio = % do Ativo × Total de Taxas
                     var taxaRateada = percentualAtivo * totalTaxasMes;
+
+                    // Total com Taxas = Taxa Rateio + Total Ativo
                     var totalComTaxas = totalAtivo + taxaRateada;
 
                     historicoCompras.Add(new HistoricoCompraResponse
