@@ -1,4 +1,4 @@
-﻿using Investment.Infrastructure.Repositories;
+using Investment.Infrastructure.Repositories;
 
 namespace Investment.Api.Configurations;
 public static class RepositoryRegisterDependenciesConfig
@@ -12,6 +12,6 @@ public static class RepositoryRegisterDependenciesConfig
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<ICotacaoRepository, CotacaoRepository>();
         services.AddScoped<IProventoRepository, ProventoRepository>();
+        services.AddScoped<ICalculoIRRepository, CalculoIRRepository>();
     }
 }
-

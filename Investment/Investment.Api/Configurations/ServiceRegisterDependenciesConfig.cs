@@ -1,4 +1,4 @@
-﻿using Investment.Application.Services;
+using Investment.Application.Services;
 using Investment.Application.Services.Cotacao;
 using Investment.Application.Services.PDF;
 
@@ -37,6 +37,8 @@ public static class ServiceRegisterDependenciesConfig
 
         // Registrar serviços de dashboard
         services.AddScoped<IDashboardService, DashboardService>();
+
+        // Registrar serviços de imposto de renda
+        services.AddScoped<IImpostoRendaService, ImpostoRendaService>();
     }
 }
-

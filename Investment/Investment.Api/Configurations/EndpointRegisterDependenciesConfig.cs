@@ -1,4 +1,4 @@
-﻿using Investment.Api.Endpoints;
+using Investment.Api.Endpoints;
 
 namespace Investment.Api.Configurations;
 public static class EndpointRegisterDependenciesConfig
@@ -17,6 +17,6 @@ public static class EndpointRegisterDependenciesConfig
         app.RegistrarCotacaoEndpoints();
         app.RegistrarLookupEndpoints();
         app.RegistrarProventoEndpoints();
+        app.RegistrarImpostoRendaEndpoints();
     }
 }
-

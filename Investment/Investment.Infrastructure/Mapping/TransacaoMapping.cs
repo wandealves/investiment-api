@@ -20,6 +20,11 @@ public class TransacaoMapping: IEntityTypeConfiguration<Transacao>
             .IsRequired()
             .HasColumnType("decimal(18,4)");
 
+        builder.Property(x => x.Taxa)
+            .IsRequired()
+            .HasColumnType("decimal(18,4)")
+            .HasDefaultValue(0);
+
         builder.Property(x => x.TipoTransacao)
             .IsRequired()
             .HasMaxLength(50);

@@ -9,6 +9,7 @@ public class Transacao
 
     public decimal Quantidade { get; set; }          // +compra / -venda
     public decimal Preco { get; set; }               // Preço unitário
+    public decimal Taxa { get; set; }                // Taxa da transação (corretagem, emolumentos, etc.)
     public string TipoTransacao { get; set; } = default!;
     // Compra, Venda, Dividendo, JCP, Split, Aporte, etc.
 
