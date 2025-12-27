@@ -6,12 +6,12 @@ public static class LookupEndpoint
 {
     public static void RegistrarLookupEndpoints(this IEndpointRouteBuilder routes)
     {
-        var group = routes.MapGroup("/api/v1/lookups")
+        var group = routes.MapGroup("/api/v1/lookup")
             .WithName("Lookup")
             .WithTags("Lookup")
             .RequireAuthorization();
 
-        group.MapGet("", async ([AsParameters] GridifyQuery query, ILookupService service) =>
+        group.MapGet("ativos", async ([AsParameters] GridifyQuery query, ILookupService service) =>
         {
             var resultado = await service.ObterAtivosAsync(query);
 
@@ -28,6 +28,17 @@ public static class LookupEndpoint
         })
         .WithName("Listar Lookup Ativos")
         .WithDescription("Lista todos os lookup ativos com suporte a paginação e filtros (Gridify)")
+        .Produces<object>(StatusCodes.Status200OK)
+        .Produces<object>(StatusCodes.Status400BadRequest);
+
+        group.MapGet("anos", (ILookupService service) =>
+        {
+            var resultado = service.ObterAnosDisponiveis();
+
+            return Results.Ok(resultado.Data);
+        })
+        .WithName("Listar Lookup Anos")
+        .WithDescription("Lista todos os lookup anoss com suporte a paginação e filtros (Gridify)")
         .Produces<object>(StatusCodes.Status200OK)
         .Produces<object>(StatusCodes.Status400BadRequest);
 

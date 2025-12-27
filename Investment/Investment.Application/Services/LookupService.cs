@@ -19,5 +19,16 @@ public class LookupService(IAtivoRepository ativoRepository) : ILookupService
 
         return Result<Paging<LookupResponse>>.Success(responsePaging);
     }
+
+    public Result<IList<LookupAnoResponse>> ObterAnosDisponiveis()
+    {
+        var anoAtual = DateTime.Now.Year;
+        List<LookupAnoResponse> anos = new List<LookupAnoResponse> { new LookupAnoResponse(0) };
+        for (var i = 0; i <= 20; i++)
+        {
+            anos.Add(new LookupAnoResponse(anoAtual - i));
+        }
+        return Result<IList<LookupAnoResponse>>.Success(anos);
+    }
 }
 
