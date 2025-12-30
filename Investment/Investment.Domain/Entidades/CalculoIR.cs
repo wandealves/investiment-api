@@ -5,14 +5,14 @@ public class CalculoIR
     public Guid Id { get; set; }
     public Guid UsuarioId { get; set; }
     public int? Ano { get; set; }  // null = consolidado geral
-    public DateTimeOffset DataCalculo { get; set; }
+    public DateTimeOffset Data { get; set; }
 
     // Totalizadores
-    public decimal ValorTotalInvestido { get; set; }
-    public decimal? ValorTotalAtual { get; set; }
-    public decimal TotalTaxasRateadas { get; set; }
-    public decimal TotalGanhoCapital { get; set; }
-    public decimal TotalIRDevido { get; set; }
+    public decimal Total { get; set; }
+    public decimal? Valor { get; set; }
+    public decimal TotalTaxas { get; set; }
+    // public decimal TotalGanhoCapital { get; set; }
+    //public decimal TotalIRDevido { get; set; }
 
     // Navegação
     public Usuario Usuario { get; set; } = default!;

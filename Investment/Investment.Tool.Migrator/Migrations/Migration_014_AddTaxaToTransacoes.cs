@@ -2,7 +2,7 @@ using FluentMigrator;
 
 namespace Investment.Tool.Migrator.Migrations;
 
-[Migration(14)]
+[Migration(202512301822)]
 public class Migration_014_AddTaxaToTransacoes : Migration
 {
     public override void Up()

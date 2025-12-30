@@ -14,26 +14,26 @@ public class CalculoIRMapping : IEntityTypeConfiguration<CalculoIR>
 
         builder.Property(x => x.UsuarioId).IsRequired();
         builder.Property(x => x.Ano).IsRequired(false);
-        builder.Property(x => x.DataCalculo).IsRequired();
+        builder.Property(x => x.Data).IsRequired();
 
-        builder.Property(x => x.ValorTotalInvestido)
+        builder.Property(x => x.Total)
             .IsRequired()
             .HasColumnType("decimal(18,4)");
 
-        builder.Property(x => x.ValorTotalAtual)
+        builder.Property(x => x.Valor)
             .HasColumnType("decimal(18,4)");
 
-        builder.Property(x => x.TotalTaxasRateadas)
+        builder.Property(x => x.TotalTaxas)
             .IsRequired()
             .HasColumnType("decimal(18,4)");
 
-        builder.Property(x => x.TotalGanhoCapital)
-            .IsRequired()
-            .HasColumnType("decimal(18,4)");
+        //builder.Property(x => x.TotalGanhoCapital)
+        //    .IsRequired()
+        //    .HasColumnType("decimal(18,4)");
 
-        builder.Property(x => x.TotalIRDevido)
-            .IsRequired()
-            .HasColumnType("decimal(18,4)");
+        //builder.Property(x => x.TotalIRDevido)
+        //    .IsRequired()
+        //    .HasColumnType("decimal(18,4)");
 
         builder.HasOne(x => x.Usuario)
             .WithMany()

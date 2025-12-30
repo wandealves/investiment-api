@@ -29,7 +29,7 @@ public class CalculoIRRepository : ICalculoIRRepository
             .Include(c => c.Itens)
                 .ThenInclude(i => i.Ativo)
             .Where(c => c.UsuarioId == usuarioId)
-            .OrderByDescending(c => c.DataCalculo)
+            .OrderByDescending(c => c.Data)
             .ToListAsync();
     }
 
@@ -40,7 +40,7 @@ public class CalculoIRRepository : ICalculoIRRepository
             .Include(c => c.Itens)
                 .ThenInclude(i => i.Ativo)
             .Where(c => c.UsuarioId == usuarioId && c.Ano == ano)
-            .OrderByDescending(c => c.DataCalculo)
+            .OrderByDescending(c => c.Data)
             .FirstOrDefaultAsync();
     }
 

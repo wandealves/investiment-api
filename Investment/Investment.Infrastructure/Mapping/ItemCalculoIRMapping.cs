@@ -16,7 +16,7 @@ public class ItemCalculoIRMapping : IEntityTypeConfiguration<ItemCalculoIR>
             .IsRequired()
             .HasColumnType("decimal(18,4)");
 
-        builder.Property(x => x.TotalInvestido)
+        builder.Property(x => x.Total)
             .IsRequired()
             .HasColumnType("decimal(18,4)");
 
@@ -33,18 +33,6 @@ public class ItemCalculoIRMapping : IEntityTypeConfiguration<ItemCalculoIR>
         builder.Property(x => x.TaxasRateadas)
             .IsRequired()
             .HasColumnType("decimal(18,4)");
-
-        builder.Property(x => x.GanhoCapital)
-            .IsRequired()
-            .HasColumnType("decimal(18,4)");
-
-        builder.Property(x => x.IRDevido)
-            .IsRequired()
-            .HasColumnType("decimal(18,4)");
-
-        builder.Property(x => x.AliquotaIR)
-            .IsRequired()
-            .HasColumnType("decimal(5,2)");
 
         builder.HasOne(x => x.CalculoIR)
             .WithMany(x => x.Itens)

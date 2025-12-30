@@ -2,7 +2,7 @@ using FluentMigrator;
 
 namespace Investment.Tool.Migrator.Migrations;
 
-[Migration(15)]
+[Migration(202512301922)]
 public class Migration_015_CreateCalculoIRTables : Migration
 {
     public override void Up()
@@ -12,12 +12,10 @@ public class Migration_015_CreateCalculoIRTables : Migration
             .WithColumn("Id").AsGuid().NotNullable().PrimaryKey()
             .WithColumn("UsuarioId").AsGuid().NotNullable()
             .WithColumn("Ano").AsInt32().Nullable()  // null = "todos os anos"
-            .WithColumn("DataCalculo").AsDateTimeOffset().NotNullable()
-            .WithColumn("ValorTotalInvestido").AsDecimal(18, 4).NotNullable()
-            .WithColumn("ValorTotalAtual").AsDecimal(18, 4).Nullable()
-            .WithColumn("TotalTaxasRateadas").AsDecimal(18, 4).NotNullable()
-            .WithColumn("TotalGanhoCapital").AsDecimal(18, 4).NotNullable()
-            .WithColumn("TotalIRDevido").AsDecimal(18, 4).NotNullable();
+            .WithColumn("Data").AsDateTimeOffset().NotNullable()
+            .WithColumn("Total").AsDecimal(18, 4).NotNullable()
+            .WithColumn("Valor").AsDecimal(18, 4).Nullable()
+            .WithColumn("TotalTaxas").AsDecimal(18, 4).NotNullable();
 
         Create.ForeignKey("FK_CalculosIR_Usuarios")
             .FromTable("CalculosIR").ForeignColumn("UsuarioId")
@@ -35,14 +33,11 @@ public class Migration_015_CreateCalculoIRTables : Migration
             .WithColumn("CalculoIRId").AsGuid().NotNullable()
             .WithColumn("AtivoId").AsInt64().NotNullable()
             .WithColumn("Quantidade").AsDecimal(18, 4).NotNullable()
-            .WithColumn("TotalInvestido").AsDecimal(18, 4).NotNullable()
+            .WithColumn("Total").AsDecimal(18, 4).NotNullable()
             .WithColumn("PrecoMedio").AsDecimal(18, 4).NotNullable()
             .WithColumn("PrecoAtual").AsDecimal(18, 4).Nullable()
             .WithColumn("Rendimento").AsDecimal(18, 4).Nullable()
-            .WithColumn("TaxasRateadas").AsDecimal(18, 4).NotNullable()
-            .WithColumn("GanhoCapital").AsDecimal(18, 4).NotNullable()
-            .WithColumn("IRDevido").AsDecimal(18, 4).NotNullable()
-            .WithColumn("AliquotaIR").AsDecimal(5, 2).NotNullable();  // 15.00, 20.00
+            .WithColumn("TaxasRateadas").AsDecimal(18, 4).NotNullable();
 
         Create.ForeignKey("FK_ItensCalculoIR_CalculosIR")
             .FromTable("ItensCalculoIR").ForeignColumn("CalculoIRId")
