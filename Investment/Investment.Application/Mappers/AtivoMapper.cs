@@ -33,6 +33,13 @@ public static class AtivoMapper
         return new LookupResponse(ativo.Id, ativo.Codigo, ativo.Nome);
     }
 
+    public static LookupResponse ToLookupResponse(Carteira carteira)
+    {
+        return new LookupResponse(carteira.Id, carteira.Id.ToString(), carteira.Nome);
+    }
+
+
+
     public static List<AtivoResponse> ToResponseList(List<Ativo> ativos)
     {
         return ativos.Select(ToResponse).ToList();

@@ -13,6 +13,7 @@ public class CalculoIRMapping : IEntityTypeConfiguration<CalculoIR>
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.UsuarioId).IsRequired();
+        builder.Property(x => x.CarteiraId).IsRequired();
         builder.Property(x => x.Ano).IsRequired(false);
         builder.Property(x => x.Data).IsRequired();
 
@@ -27,17 +28,15 @@ public class CalculoIRMapping : IEntityTypeConfiguration<CalculoIR>
             .IsRequired()
             .HasColumnType("decimal(18,4)");
 
-        //builder.Property(x => x.TotalGanhoCapital)
-        //    .IsRequired()
-        //    .HasColumnType("decimal(18,4)");
-
-        //builder.Property(x => x.TotalIRDevido)
-        //    .IsRequired()
-        //    .HasColumnType("decimal(18,4)");
 
         builder.HasOne(x => x.Usuario)
             .WithMany()
             .HasForeignKey(x => x.UsuarioId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.Carteira)
+            .WithMany()
+            .HasForeignKey(x => x.CarteiraId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(x => new { x.UsuarioId, x.Ano });

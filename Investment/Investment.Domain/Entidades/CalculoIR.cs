@@ -4,6 +4,7 @@ public class CalculoIR
 {
     public Guid Id { get; set; }
     public Guid UsuarioId { get; set; }
+    public long CarteiraId { get; set; }
     public int? Ano { get; set; }  // null = consolidado geral
     public DateTimeOffset Data { get; set; }
 
@@ -11,10 +12,8 @@ public class CalculoIR
     public decimal Total { get; set; }
     public decimal? Valor { get; set; }
     public decimal TotalTaxas { get; set; }
-    // public decimal TotalGanhoCapital { get; set; }
-    //public decimal TotalIRDevido { get; set; }
 
-    // Navegação
     public Usuario Usuario { get; set; } = default!;
+    public Carteira Carteira { get; set; } = default!;
     public ICollection<ItemCalculoIR> Itens { get; set; } = new List<ItemCalculoIR>();
 }

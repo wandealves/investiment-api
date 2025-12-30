@@ -11,6 +11,7 @@ public class Migration_015_CreateCalculoIRTables : Migration
         Create.Table("CalculosIR")
             .WithColumn("Id").AsGuid().NotNullable().PrimaryKey()
             .WithColumn("UsuarioId").AsGuid().NotNullable()
+            .WithColumn("CarteiraId").AsInt64().NotNullable()
             .WithColumn("Ano").AsInt32().Nullable()  // null = "todos os anos"
             .WithColumn("Data").AsDateTimeOffset().NotNullable()
             .WithColumn("Total").AsDecimal(18, 4).NotNullable()
@@ -20,6 +21,11 @@ public class Migration_015_CreateCalculoIRTables : Migration
         Create.ForeignKey("FK_CalculosIR_Usuarios")
             .FromTable("CalculosIR").ForeignColumn("UsuarioId")
             .ToTable("Usuarios").PrimaryColumn("Id")
+            .OnDelete(System.Data.Rule.Cascade);
+
+        Create.ForeignKey("FK_CalculosIR_Carteiras")
+            .FromTable("CalculosIR").ForeignColumn("CarteiraId")
+            .ToTable("Carteiras").PrimaryColumn("Id")
             .OnDelete(System.Data.Rule.Cascade);
 
         Create.Index("IX_CalculosIR_UsuarioId_Ano")

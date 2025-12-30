@@ -1,4 +1,3 @@
-using Investment.Api.Infrastructure;
 using Investment.Application.DTOs.ImpostoRenda;
 using Investment.Application.Services;
 
@@ -20,7 +19,7 @@ public static class ImpostoRendaEndpoint
             IImpostoRendaService service) =>
         {
             var usuarioId = context.GetUsuarioId();
-            var resultado = await service.CalcularIRAsync(request.Ano, usuarioId);
+            var resultado = await service.CalcularIRAsync(request.CarteiraId, request.Ano, usuarioId);
 
             if (!resultado.IsSuccess)
                 return Results.BadRequest(new { errors = resultado.Errors });

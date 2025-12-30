@@ -6,6 +6,7 @@ namespace Investment.Application.Services;
 public interface ILookupService
 {
     Task<Result<Paging<LookupResponse>>> ObterAtivosAsync(GridifyQuery query);
+    Task<Result<Paging<LookupResponse>>> ObterCarteirasAsync(GridifyQuery query);
     Result<IList<LookupAnoResponse>> ObterAnosDisponiveis();
 }
 

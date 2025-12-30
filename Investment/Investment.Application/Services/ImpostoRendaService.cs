@@ -21,22 +21,9 @@ public class ImpostoRendaService : IImpostoRendaService
         _calculoIRRepository = calculoIRRepository;
     }
 
-    public async Task<Result<CalculoIRResponse>> CalcularIRAsync(int? ano, Guid usuarioId)
+    public async Task<Result<CalculoIRResponse>> CalcularIRAsync(long carteiraId, int? ano, Guid usuarioId)
     {
-        // 1. Obter todas as carteiras do usuário
-        var carteiras = await _carteiraRepository.ObterPorUsuarioIdAsync(usuarioId);
-        if (!carteiras.Any())
-            return Result<CalculoIRResponse>.Failure("Usuário não possui carteiras");
-
-        var carteiraIds = carteiras.Select(c => c.Id).ToList();
-
-        // 2. Obter todas as transações (filtradas por ano se especificado)
-        var transacoes = new List<Transacao>();
-        foreach (var carteiraId in carteiraIds)
-        {
-            var trans = await _transacaoRepository.ObterPorCarteiraEAnoAsync(carteiraId, ano != null ? ano.Value : DateTime.Now.Year);
-            transacoes.AddRange(trans);
-        }
+        var transacoes = await _transacaoRepository.ObterPorCarteiraEAnoAsync(carteiraId, ano != null ? ano.Value : DateTime.Now.Year);
 
         if (!transacoes.Any())
             return Result<CalculoIRResponse>.Failure($"Não há transações para {(ano.HasValue ? $"o ano {ano.Value}" : "calcular")}");
@@ -85,6 +72,7 @@ public class ImpostoRendaService : IImpostoRendaService
         {
             Id = Guid.NewGuid(),
             UsuarioId = usuarioId,
+            CarteiraId = carteiraId,
             Ano = ano,
             Data = DateTimeOffset.UtcNow,
             Total = valorTotalInvestido,
@@ -141,7 +129,7 @@ public class ImpostoRendaService : IImpostoRendaService
 
         // Excluir cálculo antigo e criar novo
         await _calculoIRRepository.ExcluirAsync(calculoId);
-        return await CalcularIRAsync(calculoExistente.Ano, usuarioId);
+        return await CalcularIRAsync(calculoExistente.CarteiraId, calculoExistente.Ano, usuarioId);
     }
 
     public async Task<Result<List<CalculoIRResponse>>> ObterHistoricoCalculosAsync(Guid usuarioId)

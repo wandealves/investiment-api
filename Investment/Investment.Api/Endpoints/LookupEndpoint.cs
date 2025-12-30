@@ -31,6 +31,26 @@ public static class LookupEndpoint
         .Produces<object>(StatusCodes.Status200OK)
         .Produces<object>(StatusCodes.Status400BadRequest);
 
+        group.MapGet("carteiras", async ([AsParameters] GridifyQuery query, ILookupService service) =>
+        {
+            var resultado = await service.ObterCarteirasAsync(query);
+
+            if (!resultado.IsSuccess)
+            {
+                return Results.BadRequest(new
+                {
+                    errors = resultado.Errors,
+                    validationErrors = resultado.ValidationErrors
+                });
+            }
+
+            return Results.Ok(resultado.Data);
+        })
+        .WithName("Listar Lookup Carteiras")
+        .WithDescription("Lista todos os lookup carteiras com suporte a paginação e filtros (Gridify)")
+        .Produces<object>(StatusCodes.Status200OK)
+        .Produces<object>(StatusCodes.Status400BadRequest);
+
         group.MapGet("anos", (ILookupService service) =>
         {
             var resultado = service.ObterAnosDisponiveis();
