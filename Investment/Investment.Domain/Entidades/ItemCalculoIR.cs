@@ -11,6 +11,7 @@ public class ItemCalculoIR
     public decimal PrecoMedio { get; set; }
     public decimal? PrecoAtual { get; set; }
     public decimal? Rendimento { get; set; }
+    public DateTimeOffset? Data { get; set; }
 
     // Rateio de taxas (conforme @regras.md)
     public decimal TaxasRateadas { get; set; }

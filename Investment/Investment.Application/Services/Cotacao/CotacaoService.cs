@@ -9,8 +9,8 @@ public class CotacaoService : ICotacaoService
 {
     private readonly IAtivoRepository _ativoRepository;
     private readonly ICotacaoRepository _cotacaoRepository;
-    private readonly ICotacaoProviderStrategy _provider;
     private readonly ILogger<CotacaoService> _logger;
+    private readonly ICotacaoProviderStrategy _provider;
 
     public CotacaoService(
         IAtivoRepository ativoRepository,
@@ -34,14 +34,12 @@ public class CotacaoService : ICotacaoService
 
         _logger.LogInformation("Atualizando {Total} ativos", codigos.Count);
 
-        // Buscar cotações em lote
         var cotacoesDto = await _provider.ObterCotacoesEmLoteAsync(codigos);
 
         var sucessos = 0;
         var falhas = 0;
 
         foreach (var cotacaoDto in cotacoesDto)
-        {
             try
             {
                 var ativo = ativos.FirstOrDefault(a => a.Codigo == cotacaoDto.Codigo);
@@ -51,7 +49,6 @@ public class CotacaoService : ICotacaoService
                     continue;
                 }
 
-                // 1. Salvar no histórico (tabela Cotacoes)
                 var cotacao = new Domain.Entidades.Cotacao
                 {
                     AtivoId = ativo.Id,
@@ -67,7 +64,6 @@ public class CotacaoService : ICotacaoService
 
                 await _cotacaoRepository.SalvarAsync(cotacao);
 
-                // 2. Atualizar cache no Ativo
                 ativo.PrecoAtual = cotacaoDto.Preco;
                 ativo.PrecoAtualizadoEm = cotacaoDto.DataHora;
                 ativo.FonteCotacao = _provider.NomeProvedor;
@@ -81,7 +77,6 @@ public class CotacaoService : ICotacaoService
                 _logger.LogError(ex, "Erro ao processar cotação de {Codigo}", cotacaoDto.Codigo);
                 falhas++;
             }
-        }
 
         _logger.LogInformation(
             "Atualização concluída: {Sucessos} sucessos, {Falhas} falhas",
@@ -128,10 +123,7 @@ public class CotacaoService : ICotacaoService
         DateTimeOffset fim)
     {
         var ativo = await _ativoRepository.ObterPorIdAsync(ativoId);
-        if (ativo == null)
-        {
-            return Result<List<CotacaoResponse>>.Failure($"Ativo com ID {ativoId} não encontrado");
-        }
+        if (ativo == null) return Result<List<CotacaoResponse>>.Failure($"Ativo com ID {ativoId} não encontrado");
 
         var cotacoes = await _cotacaoRepository.ObterPorAtivoEPeriodoAsync(ativoId, inicio, fim);
 

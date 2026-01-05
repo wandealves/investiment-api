@@ -7,9 +7,9 @@ namespace Investment.Application.Services;
 
 public class ImpostoRendaService : IImpostoRendaService
 {
-    private readonly ITransacaoRepository _transacaoRepository;
-    private readonly ICarteiraRepository _carteiraRepository;
     private readonly ICalculoIRRepository _calculoIRRepository;
+    private readonly ICarteiraRepository _carteiraRepository;
+    private readonly ITransacaoRepository _transacaoRepository;
 
     public ImpostoRendaService(
         ITransacaoRepository transacaoRepository,
@@ -23,31 +23,43 @@ public class ImpostoRendaService : IImpostoRendaService
 
     public async Task<Result<CalculoIRResponse>> CalcularIRAsync(long carteiraId, int? ano, Guid usuarioId)
     {
-        var transacoes = await _transacaoRepository.ObterPorCarteiraEAnoAsync(carteiraId, ano != null ? ano.Value : DateTime.Now.Year);
+        var transacoes =
+            await _transacaoRepository.ObterPorCarteiraEAnoAsync(carteiraId,
+                ano != null ? ano.Value : DateTime.Now.Year);
 
         if (!transacoes.Any())
-            return Result<CalculoIRResponse>.Failure($"Não há transações para {(ano.HasValue ? $"o ano {ano.Value}" : "calcular")}");
+            return Result<CalculoIRResponse>.Failure(
+                $"Não há transações para {(ano.HasValue ? $"o ano {ano.Value}" : "calcular")}");
+
+        var grupoTransacaoAnoMesDia =
+            transacoes.GroupBy(t => new { t.DataTransacao.Year, t.DataTransacao.Month, t.DataTransacao.Day });
 
         var itensCalculo = new List<ItemCalculoIR>();
-        foreach (var transanao in transacoes)
+        foreach (var grupo in grupoTransacaoAnoMesDia)
         {
-            var totalAtivo = transanao.Preco * transanao.Quantidade;
-
-            itensCalculo.Add(new ItemCalculoIR
+            var trans = grupo.ToList();
+            foreach (var transacao in trans)
             {
-                Id = Guid.NewGuid(),
-                AtivoId = transanao.AtivoId,
-                Quantidade = transanao.Quantidade,
-                Total = totalAtivo,
-                PrecoAtual = transanao.Preco,
-                PrecoMedio = 0,
-                Rendimento = null,
-            });
+                var totalAtivo = transacao.Preco * transacao.Quantidade;
+
+                itensCalculo.Add(new ItemCalculoIR
+                {
+                    Id = Guid.NewGuid(),
+                    AtivoId = transacao.AtivoId,
+                    Quantidade = transacao.Quantidade,
+                    Total = totalAtivo,
+                    PrecoAtual = transacao.Preco,
+                    PrecoMedio = 0,
+                    Rendimento = null,
+                    Data = transacao.DataTransacao
+                });
+            }
         }
-        var totalTaxa = transacoes.First().Taxa;
-        var totalInvestido = itensCalculo.Sum(i => i.Total);
-        foreach (var itemCalculoIR in itensCalculo)
+
+        foreach (var itemCalculoIR in itensCalculo.OrderBy(i => i.Data))
         {
+            var totalInvestido = itensCalculo.FindAll(t => t.Data == itemCalculoIR.Data).Sum(i => i.Total);
+            var totalTaxa = transacoes.FirstOrDefault(t => t.DataTransacao == itemCalculoIR.Data)?.Taxa ?? 0;
             var porcetagem = itemCalculoIR.Total / totalInvestido;
             var taxaRateada = porcetagem * totalTaxa;
             itemCalculoIR.TaxasRateadas = taxaRateada;
@@ -62,10 +74,8 @@ public class ImpostoRendaService : IImpostoRendaService
         var calculoExistente = await _calculoIRRepository.ObterUltimoPorUsuarioEAnoAsync(usuarioId, ano);
 
         if (calculoExistente != null)
-        {
             // Excluir cálculo antigo para fazer atualização
             await _calculoIRRepository.ExcluirAsync(calculoExistente.Id);
-        }
 
         // Criar novo cálculo
         var calculoIR = new CalculoIR
@@ -90,7 +100,7 @@ public class ImpostoRendaService : IImpostoRendaService
             return Result<CalculoIRResponse>.Failure("Erro ao salvar cálculo de IR");
 
         // Mapear para DTO
-        var itens = calculoSalvo.Itens.Select(i => new ItemCalculoIRResponse
+        var itens = calculoSalvo.Itens.OrderBy(it => it.Data).Select(i => new ItemCalculoIRResponse
         {
             AtivoId = i.AtivoId,
             AtivoNome = i.Ativo.Nome,
@@ -102,7 +112,8 @@ public class ImpostoRendaService : IImpostoRendaService
             PrecoAtual = i.PrecoAtual,
             Rendimento = i.Rendimento,
             TaxasRateadas = i.TaxasRateadas,
-            HistoricoCompras = new List<HistoricoCompraResponse>()
+            HistoricoCompras = new List<HistoricoCompraResponse>(),
+            Data = i.Data ?? new DateTimeOffset()
         }).ToList();
         var response = new CalculoIRResponse
         {
@@ -156,6 +167,7 @@ public class ImpostoRendaService : IImpostoRendaService
                 PrecoAtual = i.PrecoAtual,
                 Rendimento = i.Rendimento,
                 TaxasRateadas = i.TaxasRateadas,
+                Data = i.Data ?? new DateTimeOffset(),
                 HistoricoCompras = new List<HistoricoCompraResponse>()
             }).ToList()
         }).ToList();

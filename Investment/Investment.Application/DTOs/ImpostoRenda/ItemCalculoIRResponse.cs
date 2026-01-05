@@ -17,6 +17,8 @@ public class ItemCalculoIRResponse
 
     public decimal TaxasRateadas { get; set; }
 
+    public DateTimeOffset Data { get; set; }
+
     // Histórico de compras (para visualização)
     public List<HistoricoCompraResponse> HistoricoCompras { get; set; } = new();
 }

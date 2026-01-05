@@ -34,6 +34,9 @@ public class ItemCalculoIRMapping : IEntityTypeConfiguration<ItemCalculoIR>
             .IsRequired()
             .HasColumnType("decimal(18,4)");
 
+        builder.Property(x => x.Data)
+            .IsRequired(false);
+
         builder.HasOne(x => x.CalculoIR)
             .WithMany(x => x.Itens)
             .HasForeignKey(x => x.CalculoIRId)
