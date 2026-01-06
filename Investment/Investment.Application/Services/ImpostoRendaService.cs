@@ -169,7 +169,7 @@ public class ImpostoRendaService : IImpostoRendaService
                 TaxasRateadas = i.TaxasRateadas,
                 Data = i.Data ?? new DateTimeOffset(),
                 HistoricoCompras = new List<HistoricoCompraResponse>()
-            }).ToList()
+            }).OrderBy(it => it.Data).ToList()
         }).ToList();
 
         return Result<List<CalculoIRResponse>>.Success(response);
