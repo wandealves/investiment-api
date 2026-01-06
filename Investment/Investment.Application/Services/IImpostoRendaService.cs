@@ -9,4 +9,5 @@ public interface IImpostoRendaService
     Task<Result<CalculoIRResponse>> RecalcularIRAsync(Guid calculoId, Guid usuarioId);
     Task<Result<List<CalculoIRResponse>>> ObterHistoricoCalculosAsync(Guid usuarioId);
     Task<Result> ExcluirCalculoAsync(Guid calculoId, Guid usuarioId);
+    Task<Result<List<ItemVisualizacaoIRResponse>>> ObterVisualizacaoPorPeriodoAsync(int ano, int? mes, long carteiraId, Guid usuarioId);
 }

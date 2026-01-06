@@ -153,4 +153,63 @@ public class ImpostoRendaService(
         await calculoIRRepository.ExcluirAsync(calculoId);
         return Result.Success();
     }
+
+    public async Task<Result<List<ItemVisualizacaoIRResponse>>> ObterVisualizacaoPorPeriodoAsync(
+        int ano,
+        int? mes,
+        long carteiraId,
+        Guid usuarioId)
+    {
+        // Buscar todos os cálculos do usuário
+        var calculos = await calculoIRRepository.ObterPorUsuarioIdAsync(usuarioId);
+
+        // Filtrar por ano e carteira
+        var calculosFiltrados = calculos
+            .Where(c => c.Ano == ano && c.CarteiraId == carteiraId)
+            .ToList();
+
+        if (!calculosFiltrados.Any())
+            return Result<List<ItemVisualizacaoIRResponse>>.Failure(
+                $"Não há cálculos de IR para o ano {ano} e a carteira selecionada");
+
+        // Obter todos os itens dos cálculos filtrados
+        var todosItens = calculosFiltrados
+            .SelectMany(c => c.Itens)
+            .ToList();
+
+        // Filtrar por mês se especificado
+        if (mes.HasValue)
+        {
+            todosItens = todosItens
+                .Where(i => i.Data.HasValue && i.Data.Value.Month == mes.Value)
+                .ToList();
+
+            if (!todosItens.Any())
+                return Result<List<ItemVisualizacaoIRResponse>>.Failure(
+                    $"Não há dados para o mês {mes.Value} do ano {ano}");
+        }
+
+        // Agrupar por código do ativo e somar quantidade e total
+        var itensAgrupados = todosItens
+            .GroupBy(i => new
+            {
+                i.AtivoId,
+                AtivoCodigo = i.Ativo.Codigo,
+                AtivoNome = i.Ativo.Nome,
+                AtivoTipo = i.Ativo.Tipo
+            })
+            .Select(g => new ItemVisualizacaoIRResponse
+            {
+                AtivoCodigo = g.Key.AtivoCodigo,
+                AtivoNome = g.Key.AtivoNome,
+                AtivoTipo = g.Key.AtivoTipo,
+                QuantidadeTotal = g.Sum(i => i.Quantidade),
+                Total = g.Sum(i => i.Total),
+                ItensCount = g.Count()
+            })
+            .OrderBy(i => i.AtivoCodigo)
+            .ToList();
+
+        return Result<List<ItemVisualizacaoIRResponse>>.Success(itensAgrupados);
+    }
 }
