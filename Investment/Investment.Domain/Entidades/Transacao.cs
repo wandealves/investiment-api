@@ -7,9 +7,10 @@ public class Transacao
     public long CarteiraId { get; set; }
     public long AtivoId { get; set; }
 
-    public decimal Quantidade { get; set; }          // +compra / -venda
-    public decimal Preco { get; set; }               // Preço unitário
-    public decimal Taxa { get; set; }                // Taxa da transação (corretagem, emolumentos, etc.)
+    public decimal Quantidade { get; set; } // +compra / -venda
+    public decimal Preco { get; set; } // Preço unitário
+    public decimal Taxa { get; set; } // Taxa da transação (corretagem, emolumentos, etc.)
+
     public string TipoTransacao { get; set; } = default!;
     // Compra, Venda, Dividendo, JCP, Split, Aporte, etc.
 
@@ -22,4 +23,6 @@ public class Transacao
     public Carteira Carteira { get; set; } = default!;
     public Ativo Ativo { get; set; } = default!;
     public Provento? Provento { get; set; }
+
+    public decimal ValorTotal => Preco * Quantidade;
 }

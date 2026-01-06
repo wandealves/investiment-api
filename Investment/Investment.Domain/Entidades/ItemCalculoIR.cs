@@ -19,4 +19,15 @@ public class ItemCalculoIR
     // Navegação
     public CalculoIR CalculoIR { get; set; } = default!;
     public Ativo Ativo { get; set; } = default!;
+
+    public decimal TotalTaxa(IList<Transacao> transacoes)
+    {
+        return transacoes.FirstOrDefault(t => t.DataTransacao == Data)?.Taxa ?? 0;
+    }
+
+    public decimal Porcetagem(List<ItemCalculoIR> itensCalculo)
+    {
+        var totalInvestido = itensCalculo.FindAll(t => t.Data == Data).Sum(i => i.Total);
+        return Total / totalInvestido;
+    }
 }
