@@ -17,6 +17,9 @@ public class TransacaoRequest
     [Range(0.0001, double.MaxValue, ErrorMessage = "O preço deve ser maior que zero")]
     public decimal Preco { get; set; }
 
+    [Range(0, double.MaxValue, ErrorMessage = "A taxa deve ser maior ou igual a zero")]
+    public decimal Taxa { get; set; } = 0;
+
     [Required(ErrorMessage = "O tipo de transação é obrigatório")]
     [StringLength(50, ErrorMessage = "O tipo de transação deve ter no máximo 50 caracteres")]
     public string TipoTransacao { get; set; } = default!;

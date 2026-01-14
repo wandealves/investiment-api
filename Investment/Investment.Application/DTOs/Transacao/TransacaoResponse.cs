@@ -9,6 +9,7 @@ public class TransacaoResponse
     public string AtivoCodigo { get; set; } = default!;
     public decimal Quantidade { get; set; }
     public decimal Preco { get; set; }
+    public decimal Taxa { get; set; }
     public decimal ValorTotal { get; set; }
     public string TipoTransacao { get; set; } = default!;
     public DateTimeOffset DataTransacao { get; set; }

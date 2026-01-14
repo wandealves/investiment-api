@@ -14,6 +14,7 @@ public static class TransacaoMapper
             AtivoId = request.AtivoId,
             Quantidade = request.Quantidade,
             Preco = request.Preco,
+            Taxa = request.Taxa,
             TipoTransacao = request.TipoTransacao,
             DataTransacao = request.DataTransacao.ToUniversalTime()
         };
@@ -30,6 +31,7 @@ public static class TransacaoMapper
             AtivoCodigo = transacao.Ativo?.Codigo ?? string.Empty,
             Quantidade = transacao.Quantidade,
             Preco = transacao.Preco,
+            Taxa = transacao.Taxa,
             ValorTotal = transacao.Quantidade * transacao.Preco,
             TipoTransacao = transacao.TipoTransacao,
             DataTransacao = transacao.DataTransacao
@@ -52,6 +54,7 @@ public static class TransacaoMapper
             AtivoCodigo = transacao.Ativo?.Codigo ?? string.Empty,
             Quantidade = transacao.Quantidade,
             Preco = transacao.Preco,
+            Taxa = transacao.Taxa,
             ValorTotal = transacao.Quantidade * transacao.Preco,
             TipoTransacao = transacao.TipoTransacao,
             DataTransacao = transacao.DataTransacao,
@@ -68,6 +71,7 @@ public static class TransacaoMapper
         transacao.AtivoId = request.AtivoId;
         transacao.Quantidade = request.Quantidade;
         transacao.Preco = request.Preco;
+        transacao.Taxa = request.Taxa;
         transacao.TipoTransacao = request.TipoTransacao;
         transacao.DataTransacao = request.DataTransacao.ToUniversalTime();
     }
